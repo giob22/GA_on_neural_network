@@ -19,7 +19,7 @@ class neural_network:
         self.bias = []
         size = hidden_size
         print("-"*20 + "CARATTERISTICHE DELLA RETE NEURALE" + "-"*20)
-        print(f"#layer: {n_layer}\ndimensione input: {n_input}\ndimensione output: {n_output}\ndimensione hidden layer: {size}")
+        print(f"{'#layer:':<25} {n_layer:<10}\n{'dimensione input:':<25} {n_input:<10}\n{'dimensione output:':<25} {n_output:<10}\n{'dimensione hidden layer:':<25} {size:<10}")
         print("-"*20 + "-" * 34 + "-"*20)
         self.bias.append(np.random.uniform(-0.5,0.5, size=(size,1)))
         for i in range(n_layer - 2):
