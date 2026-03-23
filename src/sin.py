@@ -11,7 +11,7 @@ Y_train = []
 
 for x in X_train:
     # moltiplico x per 2*pi per avere un periodo completo del sin
-    valore_seno = (m.sin(x*2*m.pi) + 1)/2
+    valore_seno = (m.cos(x*2*m.pi) + 1)/2
 
 
     # caso: treno di gradini
@@ -42,29 +42,35 @@ hidden_size = 32
 1 layer di input
 1 layer di output
 '''
-p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.1, hidden_size=1000)
+p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.1, hidden_size=32)
 
 plt.ion() 
 # per permettere al codice sottostante di continuare ad eseguire dopo aver fatto il plot
 # necessario per l'animazione
 
-fig, ax = plt.subplots(figsize=(10,6))
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(10,6))
 # fig: rappresenta l'intera finestra o contenitore globale
-# ax: è il sigolo grafico all'interno della figure
+# ax1 e ax2: è il sigolo grafico all'interno della figure
+# ax1: per il grafico della predizione
+# ax2: per visualizzare la matrice dei pesi
 
-linea_predizione, = ax.plot([],[], color='red', linewidth=3, label='Predizione della rete')
 
-ax.plot(X_train, Y_train, color='blue',alpha=0.5, label='Sinusoide Reale (Target)')
+linea_predizione, = ax1.plot([],[], color='red', linewidth=3, label='Predizione della rete')
 
-ax.set_xlim(0,1)
-ax.set_ylim(-0.1, 1.1)
-ax.grid(True, linestyle='-',alpha=0.6)
-ax.legend()
+im = ax2.imshow(p.weights[1], cmap='RdBu', aspect='auto')
+cbar = fig.colorbar(im,ax=ax2)
+
+ax1.plot(X_train, Y_train, color='blue',alpha=0.5, label='Sinusoide Reale (Target)')
+
+ax1.set_xlim(0,1)
+ax1.set_ylim(-0.1, 1.1)
+ax1.grid(True, linestyle='-',alpha=0.6)
+ax1.legend()
 
 # animazione dell'addestramento
 
-epoche_per_frame = 200
-frame_totali = 10000
+epoche_per_frame = 2000
+frame_totali = 1000
 
 # creiamo i punti per una predizione fluida
 x_plot = np.linspace(0,1,1000)
@@ -84,11 +90,18 @@ for frame in range(frame_totali):
     
     # aggiornamento della linea sul grafico
     linea_predizione.set_data(x_plot, y_plot)
-    ax.set_title(f"Simulazione di una rete neurale che impara un periodo di una sinusoide\nEpoca {frame * epoche_per_frame}")
+    ax1.set_title(f"Predizione della rete e sin(2pi*x)\nEpoca {frame * epoche_per_frame}")
+
+    # aggiorniamo il grafico della matrice dei pesi
+    new_weights = p.weights[1]
+    im.set_data(new_weights)
+    im.set_clim(vmin=new_weights.min(), vmax=new_weights.max())
+    ax2.set_title("Matrice dei pesi (Layer 1)")
 
     fig.canvas.draw() # ridisegna la tela
     fig.canvas.flush_events() # forza l'interfaccia a elaborare tutti gli eventi in sospeso
     plt.pause(0.01) # mette in pausa l'esecuzione dello script python → stiamo dando tempo al motore grafico di renderizzare e mostrare il risultato
+
 
 plt.ioff()
 print("Addestramento completato")
