@@ -57,7 +57,7 @@ fig, (ax1, ax2) = plt.subplots(1,2,figsize=(10,6))
 
 linea_predizione, = ax1.plot([],[], color='red', linewidth=3, label='Predizione della rete')
 
-im = ax2.imshow(p.weights[1], cmap='RdBu', aspect='auto')
+im = ax2.imshow(p.weights[1], cmap='coolwarm', aspect='auto')
 cbar = fig.colorbar(im,ax=ax2)
 
 ax1.plot(X_train, Y_train, color='blue',alpha=0.5, label='Sinusoide Reale (Target)')
@@ -90,7 +90,7 @@ for frame in range(frame_totali):
     
     # aggiornamento della linea sul grafico
     linea_predizione.set_data(x_plot, y_plot)
-    ax1.set_title(f"Predizione della rete e sin(2pi*x)\nEpoca {frame * epoche_per_frame}")
+    ax1.set_title(f"Predizione della rete e cos(2pi*x)\nEpoca {frame * epoche_per_frame}")
 
     # aggiorniamo il grafico della matrice dei pesi
     new_weights = p.weights[1]
