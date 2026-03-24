@@ -2,18 +2,27 @@ import numpy as np
 import math as m
 
 
-def sigmoid(x):
-    # Clip per evitare overflow in np.exp
-    x_clipped = np.clip(x, -500, 500)
-    return 1 / (1 + np.exp(-x_clipped))
 
-
-def d_sigmoid(x):
-    return x * (1 - x)
 
 
 class neural_network:
-    def __init__(self, n_layer, n_input, n_output, lr, hidden_size=8):
+    def __init__(self, n_layer, n_input, n_output, lr, hidden_size=8, activation_function = "sigmoid"):
+        self.activation_function = activation_function
+
+        if self.activation_function == "tanh":
+            self.func = self.tanh
+            self.dfunc = self.dtanh
+        elif self.activation_function == "relu":
+            self.func = self.relu
+            self.dfunc = self.drelu
+        else:
+            self.func = self.sigmoid
+            self.dfunc = self.d_sigmoid
+
+            
+
+
+
         self.lr = lr
         self.weights = []
         self.bias = []
@@ -41,6 +50,34 @@ class neural_network:
         self.n_input = n_input
         self.n_output = n_output
 
+
+
+
+    def sigmoid(self, x):
+    # Clip per evitare overflow in np.exp
+        x_clipped = np.clip(x, -500, 500)
+        return 1 / (1 + np.exp(-x_clipped))
+
+
+    def d_sigmoid(self, x):
+        return x * (1 - x)
+
+    def tanh(self, x):
+        return np.tanh(x)
+        
+
+    def dtanh(self, x):
+        return 1 - np.tanh(x)**2
+
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def drelu(self, x):
+        return np.where(x > 0, 1.0, 0.0)
+
+
+
+
     def prediction(self, input):
         if isinstance(input, np.ndarray):
             # verifico la shape che deve essere del tipo (n,1)
@@ -55,17 +92,15 @@ class neural_network:
         hidden_outputs = []
         for i in range(len(self.weights)):
             res = self.weights[i] @ res + self.bias[i]
-            res = sigmoid(res)
+            res = self.func(res)
             hidden_outputs.append(res)
-        hidden_outputs = hidden_outputs[
-            :-1
-        ]  # tolgo l'ultimo hidden_output che corrisponde alla predizione
+        hidden_outputs = hidden_outputs[:-1]  # tolgo l'ultimo hidden_output che corrisponde alla predizione
         return (res, hidden_outputs)
 
     def backpropagation_hidden(self, hidden_outputs, output_error):
         hidden_error = output_error
         for i in range(len(self.weights) - 2, -1, -1):
-            delta_hidden = hidden_error * d_sigmoid(hidden_outputs[i + 1])
+            delta_hidden = hidden_error * self.dfunc(hidden_outputs[i + 1])
 
             gradient_hidden = delta_hidden * self.lr
             next_hidden_error = self.weights[i].T @ delta_hidden
@@ -83,7 +118,7 @@ class neural_network:
 
         # backpropagation
         output_error = target - y
-        delta_output = output_error * d_sigmoid(y)
+        delta_output = output_error * self.dfunc(y)
         # output
         hidden_error = self.weights[-1].T @ delta_output
 

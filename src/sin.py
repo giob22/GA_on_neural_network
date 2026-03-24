@@ -2,6 +2,7 @@ import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 from nn import neural_network
+import os
 
 # creo il dataset della sinusoide
 
@@ -9,6 +10,20 @@ X_train = np.linspace(0,1,100).tolist();
 # faccio il tolist() altrimenti sarebbe un numpy.ndarray
 Y_train = []
 
+func_corretta = False
+while not func_corretta:
+    try:
+        activation_func = input("Inserisci la activation function che vorresti utilizzare:\n\t- sigmoid\n\t- tanh\n\t- relu\n: ")
+        if activation_func == "sigmoid" or activation_func == "tanh" or activation_func == "relu":
+            func_corretta = True
+        else:
+            raise ValueError("valore non valido, riprova!!")
+    except ValueError as e:
+        print("[ERROR]", e)
+    except:
+        print("[ERRORE GRAVE]")
+        os._exit(1)
+    
 for x in X_train:
     # moltiplico x per 2*pi per avere un periodo completo del sin
     valore_seno = (m.cos(x*2*m.pi) + 1)/2
@@ -42,7 +57,7 @@ hidden_size = 32
 1 layer di input
 1 layer di output
 '''
-p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.1, hidden_size=32)
+p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.1, hidden_size=32, activation_function=activation_func)
 
 plt.ion() 
 # per permettere al codice sottostante di continuare ad eseguire dopo aver fatto il plot
@@ -85,8 +100,8 @@ ax1.legend()
 
 # animazione dell'addestramento
 
-epoche_per_frame = 2000
-frame_totali = 1000
+epoche_per_frame = 100
+frame_totali = 5000
 
 # creiamo i punti per una predizione fluida
 x_plot = np.linspace(0,1,1000)
