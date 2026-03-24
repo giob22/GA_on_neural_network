@@ -48,7 +48,22 @@ plt.ion()
 # per permettere al codice sottostante di continuare ad eseguire dopo aver fatto il plot
 # necessario per l'animazione
 
-fig, (ax1, ax2) = plt.subplots(1,2,figsize=(10,6))
+fig = plt.figure(figsize=(10,6))
+
+# Utilizziamo gridspec per creare una griglia 2x2
+gs = fig.add_gridspec(2,2)
+
+ax1 = fig.add_subplot(gs[0,0])
+ax2 = fig.add_subplot(gs[0,1])
+ax3 = fig.add_subplot(gs[1,0])
+
+ax3.set_title("Loss values per frame (MSE)")
+testo_loss = ax3.text(.5, -0.15, '', transform=ax3.transAxes, 
+                      ha='right', va='top', fontsize=12, color='blue',
+                      bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'))
+
+
+# fig, (ax1, ax2) = plt.subplots(2,2,figsize=(10,6))
 # fig: rappresenta l'intera finestra o contenitore globale
 # ax1 e ax2: è il sigolo grafico all'interno della figure
 # ax1: per il grafico della predizione
@@ -56,6 +71,7 @@ fig, (ax1, ax2) = plt.subplots(1,2,figsize=(10,6))
 
 
 linea_predizione, = ax1.plot([],[], color='red', linewidth=3, label='Predizione della rete')
+loss_values, = ax3.plot([],[], color='blue', linewidth=3, label='loss (performance del modello)')
 
 im = ax2.imshow(p.weights[1], cmap='coolwarm', aspect='auto')
 cbar = fig.colorbar(im,ax=ax2)
@@ -74,13 +90,35 @@ frame_totali = 1000
 
 # creiamo i punti per una predizione fluida
 x_plot = np.linspace(0,1,1000)
+# inizializzo il vettore che conterrà i loss value
+loss_plot = []
 
 for frame in range(frame_totali):
+
+    errore_cumulato = 0
 
     for _ in range(epoche_per_frame):
         # scegliamo un punto a caso delle x e addestriamo la rete
         x_casuale = np.random.randint(0,len(X_train))
-        p.train(X_train[x_casuale], Y_train[x_casuale])
+        y_hat = p.train(X_train[x_casuale], Y_train[x_casuale])[0][0]
+
+        # aggiungiamo l'errore quadratico della singola predizione 
+        errore_cumulato += (Y_train[x_casuale] - y_hat)**2
+    
+    # calcolo dell'errore quadratico medio (MSE) di questo frame
+    loss_medio_frame = errore_cumulato / epoche_per_frame
+
+    loss_plot.append(loss_medio_frame)
+
+    # aggiorno il grafico ax3
+    loss_epochs = np.arange(len(loss_plot))
+
+    loss_values.set_data(loss_epochs, loss_plot) 
+    testo_loss.set_text(f"Loss medio attuale: {loss_medio_frame:.6f}")
+
+    # Aggiorniamo dinamicamente gli assi del grafico loss altrimenti esce dalla vista
+    ax3.set_xlim(0, max(10, len(loss_plot))) # Mostra almeno 10 epoche sull'asse x
+    ax3.set_ylim(0, max(loss_plot) * 1.1 if max(loss_plot) > 0 else 1)     
     
     # calcolo la curva predetta dalla rete
     y_plot = []

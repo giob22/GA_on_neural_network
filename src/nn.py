@@ -95,3 +95,5 @@ class neural_network:
         hidden_outputs.insert(0, inputs)
 
         self.backpropagation_hidden(hidden_outputs, hidden_error)
+
+        return y
