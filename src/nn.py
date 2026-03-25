@@ -15,6 +15,9 @@ class neural_network:
         elif self.activation_function == "relu":
             self.func = self.relu
             self.dfunc = self.drelu
+        elif self.activation_function == "leaky_r":
+            self.func = self.leaky_relu
+            self.dfunc = self.d_leaky_relu
         else:
             self.func = self.sigmoid
             self.dfunc = self.d_sigmoid
@@ -68,12 +71,20 @@ class neural_network:
 
     def dtanh(self, x):
         return 1 - np.tanh(x)**2
-
+    # soffre di Dying ReLU
     def relu(self, x):
         return np.maximum(0, x)
 
     def drelu(self, x):
         return np.where(x > 0, 1.0, 0.0)
+    # versione di ReLU che lascia passare una piccola parte del segnale per 
+    # evitare il più possibile la morte dei neuroni
+    # alpha = 0.01
+    def leaky_relu(self, x):
+        return np.maximum(0.01*x, x)
+    
+    def d_leaky_relu(self, x):
+        return np.where(x > 0, 1.0, 0.01)
 
 
 

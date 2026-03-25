@@ -4,6 +4,16 @@ import matplotlib.pyplot as plt
 from nn import neural_network
 import os
 
+import sympy as sp
+
+t = sp.symbols("t")
+
+f = (sp.sin(t) * sp.cos(t))/2 + 1
+
+
+
+
+
 # creo il dataset della sinusoide
 
 X_train = np.linspace(0,1,100).tolist();
@@ -13,8 +23,8 @@ Y_train = []
 func_corretta = False
 while not func_corretta:
     try:
-        activation_func = input("Inserisci la activation function che vorresti utilizzare:\n\t- sigmoid\n\t- tanh\n\t- relu\n: ")
-        if activation_func == "sigmoid" or activation_func == "tanh" or activation_func == "relu":
+        activation_func = input("Inserisci la activation function che vorresti utilizzare:\n\t- sigmoid\n\t- tanh\n\t- relu\n\t- leaky_r\n: ")
+        if activation_func == "sigmoid" or activation_func == "tanh" or activation_func == "relu" or activation_func == "leaky_r":
             func_corretta = True
         else:
             raise ValueError("valore non valido, riprova!!")
@@ -27,6 +37,8 @@ while not func_corretta:
 for x in X_train:
     # moltiplico x per 2*pi per avere un periodo completo del sin
     valore_seno = (m.cos(x*2*m.pi) + 1)/2
+    # valore_seno = 
+    # valore_seno = (m.cos(x*2*m.pi ) * m.sin(x*2*m.pi * 2) + 1)/2
 
 
     # caso: treno di gradini
@@ -38,10 +50,9 @@ for x in X_train:
     #     valore_seno = 0.4
     # elif x < 0.8:
     #     valore_seno = 0.6
-    # elif x < 1:
-    #     valore_seno = 0.8
     # else:
-    #     valore_seno = 1
+    #     valore_seno = 0.8
+
 
     #sommo 1 e divido per 2 per avere tutti valori compresi tra 0 e 1
     Y_train.append(valore_seno)
@@ -57,7 +68,7 @@ hidden_size = 32
 1 layer di input
 1 layer di output
 '''
-p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.1, hidden_size=32, activation_function=activation_func)
+p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.01, hidden_size=100, activation_function=activation_func)
 
 plt.ion() 
 # per permettere al codice sottostante di continuare ad eseguire dopo aver fatto il plot
@@ -100,8 +111,8 @@ ax1.legend()
 
 # animazione dell'addestramento
 
-epoche_per_frame = 100
-frame_totali = 5000
+epoche_per_frame = 2000
+frame_totali = 1000
 
 # creiamo i punti per una predizione fluida
 x_plot = np.linspace(0,1,1000)
