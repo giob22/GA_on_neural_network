@@ -8,11 +8,7 @@ import sympy as sp
 
 t = sp.symbols("t")
 
-f = (sp.sin(t) * sp.cos(t))/2 + 1
-
-
-
-
+f_target = (sp.sin(t*2*sp.pi) * sp.cos(t*2*sp.pi*2.15) + 1)/2
 
 # creo il dataset della sinusoide
 
@@ -33,29 +29,32 @@ while not func_corretta:
     except:
         print("[ERRORE GRAVE]")
         os._exit(1)
-    
+
+f_target_np = sp.lambdify(t, f_target)
+
 for x in X_train:
     # moltiplico x per 2*pi per avere un periodo completo del sin
-    valore_seno = (m.cos(x*2*m.pi) + 1)/2
-    # valore_seno = 
-    # valore_seno = (m.cos(x*2*m.pi ) * m.sin(x*2*m.pi * 2) + 1)/2
+    valore = f_target_np(x)
+    # valore = (m.cos(x*2*m.pi) + 1)/2
+    # valore = 
+    # valore = (m.cos(x*2*m.pi ) * m.sin(x*2*m.pi * 2) + 1)/2
 
 
     # caso: treno di gradini
     # if x<0.2:
-    #     valore_seno = 0
+    #     valore = 0
     # elif x < 0.4:
-    #     valore_seno = 0.2
+    #     valore = 0.2
     # elif x < 0.6:
-    #     valore_seno = 0.4
+    #     valore = 0.4
     # elif x < 0.8:
-    #     valore_seno = 0.6
+    #     valore = 0.6
     # else:
-    #     valore_seno = 0.8
+    #     valore = 0.8
 
 
     #sommo 1 e divido per 2 per avere tutti valori compresi tra 0 e 1
-    Y_train.append(valore_seno)
+    Y_train.append(valore)
 
 # preparo la rete e il grafico
 
@@ -68,7 +67,7 @@ hidden_size = 32
 1 layer di input
 1 layer di output
 '''
-p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.01, hidden_size=100, activation_function=activation_func)
+p = neural_network(n_layer=3, n_input=1, n_output=1, lr=0.01, hidden_size=64, activation_function=activation_func)
 
 plt.ion() 
 # per permettere al codice sottostante di continuare ad eseguire dopo aver fatto il plot
@@ -154,7 +153,7 @@ for frame in range(frame_totali):
     
     # aggiornamento della linea sul grafico
     linea_predizione.set_data(x_plot, y_plot)
-    ax1.set_title(f"Predizione della rete e cos(2pi*x)\nEpoca {frame * epoche_per_frame}")
+    ax1.set_title(f"Predizione della rete\n[{f_target}]\nFrame: {frame:<10}Epoca: {frame * epoche_per_frame:<10}")
 
     # aggiorniamo il grafico della matrice dei pesi
     new_weights = p.weights[1]
