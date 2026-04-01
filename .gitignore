@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+src/schedule_project
+
 # C extensions
 *.so
 
