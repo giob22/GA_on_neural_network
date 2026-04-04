@@ -2,9 +2,9 @@ from neural_network import *
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_digits, load_wine, load_breast_cancer
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 def one_hot(y, n_classes=3):
     Y = np.zeros((len(y), n_classes))
@@ -12,16 +12,26 @@ def one_hot(y, n_classes=3):
         Y[i][label] = 1
     return Y
 
+def number_params(input_size, individuo, output_size):
+    params = 0
+    prev = input_size
+    for neuroni, _ in individuo:
+        params += neuroni * prev + neuroni
+        prev = neuroni
+    params += output_size * prev + output_size
+    return params
 
-K = 3 # numero di addestramenti per individuo
+
+
+K = 5 # numero di addestramenti per individuo
 
 POPULAZION_SIZE = 20
-GENERATIONS = 20
+GENERATIONS = 30
 MUTATION_RATE = 0.2
-TOURNAMENT_SIZE = 3
-EPOCHS =  120 #150
-LEARNING_RATE = 0.01
-LAMBDA_ = 0.00005
+TOURNAMENT_SIZE = 5
+EPOCHS =  300 #150
+LEARNING_RATE = 0.001
+LAMBDA_ = 0.0005
 
 EPOCHS_BASELINE = K * EPOCHS
 
@@ -33,6 +43,25 @@ if __name__ == "__main__":
     
     x = dataset.data
     y = dataset.target
+
+    # numero di feature
+    input_size = x.shape[1]
+
+    # numero di classi
+    n_classi = len(np.unique(y))
+
+
+    output_function = softmax
+
+    
+    nome_riga = [r for r in dataset.DESCR.split('\n') if r.strip() and not r.startswith('..')]
+    DATASET_NAME = nome_riga[0].strip()   # → "Iris plants dataset"
+    
+
+
+    
+    
+    
 
     # split train/validation
 
@@ -49,15 +78,15 @@ if __name__ == "__main__":
     x_val = scaler.transform(x_val)
 
     
-    y_train = one_hot(y_train)
-    y_val = one_hot(y_val)
+    y_train = one_hot(y_train, n_classes=n_classi)
+    y_val = one_hot(y_val, n_classes=n_classi)
 
 
     # BASELINE con backpropagation classica
     # rete neurale addestrata per lo stesso quantitativo di epoche 
     # mi permette di confrontare il risultato del GA
-    cromosoma_baseline = [(8,leaky_relu),(8,leaky_relu),(8,leaky_relu),(8,leaky_relu)]
-    rete_baseline = neural_network(hidden_config=cromosoma_baseline,size_input=4 , size_output=3, learning_rate=0.01, output_function=softmax)
+    cromosoma_baseline = [(8,leaky_relu),(8,leaky_relu)]
+    rete_baseline = neural_network(hidden_config=cromosoma_baseline,size_input=input_size , size_output=n_classi, learning_rate=0.01, output_function=output_function)
 
     for i in range(0, EPOCHS_BASELINE):
         idx = random.randint(0, len(x_train) - 1)
@@ -70,7 +99,7 @@ if __name__ == "__main__":
         if np.argmax(guess) == np.argmax(y_val[i]):
             correct += 1
     accuracy_baseline = correct/len(x_val)
-    print(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%")
+    print(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
 
     # ESECUZIONE DEL Genetic Algorithm
 
@@ -81,6 +110,9 @@ if __name__ == "__main__":
                           epochs=EPOCHS,
                           learning_rate=LEARNING_RATE,
                           lambda_=LAMBDA_,
+                          n_feature=input_size,
+                          n_output= n_classi,
+                          K=K,
                           X_Train=x_train, Y_Train=y_train,
                           X_val=x_val, Y_val=y_val)
     
@@ -90,6 +122,12 @@ if __name__ == "__main__":
     print(f"Fitness:{round(best_fitness * 100,2)}")
     print(f"Accuracy:{round(best_accuracy * 100,2)}%")
     print(f"Numero di layer={len(best_individuo)}")
+    print(f"#parametri={number_params(input_size,best_individuo, n_classi)}")
+
+    # trovo nella storia in che generazione si posizione il best_individuo
+    idx_best = np.argmax(storia_best_fitness)
+    
+
 
     
     linespace_gen = list(range(1, GENERATIONS + 1))
@@ -112,7 +150,7 @@ if __name__ == "__main__":
     # fig, (ax_acc, ax_fit) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
     fig.suptitle(
         "Algoritmo Genetico — ricerca dell'architettura ottimale\n"
-        "(Dataset Iris, classificazione 3 classi)",
+        f"({DATASET_NAME}, classificazione {n_classi} classi)",
         fontsize=13, fontweight='bold'
     )
 
@@ -128,8 +166,8 @@ if __name__ == "__main__":
 
     # annotazione valore finale best accuracy
     ax_acc.annotate(
-        f"{best_accuracy_pct[-1]:.1f}%",
-        xy=(GENERATIONS, best_accuracy_pct[-1]),
+        f"{best_accuracy_pct[idx_best]:.1f}%",
+        xy=(idx_best + 1, best_accuracy_pct[idx_best]),
         xytext=(0, 12), textcoords='offset points',
         fontsize=9, color='steelblue',
         arrowprops=dict(arrowstyle='->', color='steelblue', lw=1.2)
@@ -152,8 +190,8 @@ if __name__ == "__main__":
                    label=f"Baseline backprop ({baseline_pct:.1f}%)")
 
     ax_fit.annotate(
-        f"{best_fitness_pct[-1]:.1f}",
-        xy=(GENERATIONS, best_fitness_pct[-1]),
+        f"{best_fitness_pct[idx_best]:.1f}",
+        xy=(idx_best + 1, best_fitness_pct[idx_best]),
         xytext=(0, 15), textcoords='offset points',
         fontsize=9, color='darkorange',
         arrowprops=dict(arrowstyle='->', color='darkorange', lw=1.2)
@@ -175,9 +213,10 @@ if __name__ == "__main__":
     testo = "Input: 4 neuroni\n\n"
     for i, (neuroni, funzione) in enumerate(best_individuo):
             testo += f"Hidden layer {i + 1}: {neuroni} neuroni → {funzione}\n"
-    testo += f"\n Output: 3 neuroni → softmax"
+    testo += f"\n Output: 3 neuroni → {output_function.__name__}"
     testo += f"\n\nAccuracy: {round(best_accuracy * 100,2)}%"
     testo += f"\nFitness: {round(best_fitness * 100, 2)}"
+    testo += f"\n#parametri: {number_params(input_size, best_individuo, n_classi)}"
     ax_arch.text(0.5,0.5, testo, transform=ax_arch.transAxes, fontsize=12, verticalalignment='center', horizontalalignment='center', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
 
     ax_arch.set_title("Migliore architettura trovata")

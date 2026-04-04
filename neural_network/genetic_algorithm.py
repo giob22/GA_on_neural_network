@@ -4,7 +4,9 @@ from .nn_engine import neural_network
 
 class GeneticAlgorithm:
 
-    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, lambda_, X_Train, Y_Train, X_val, Y_val):
+    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate,n_feature, n_output, K,lambda_, X_Train, Y_Train, X_val, Y_val):
+        self.n_feature = n_feature
+        self.n_output = n_output
         self.population_size = population_size
         # numero di individui
         self.generations = generations
@@ -29,7 +31,8 @@ class GeneticAlgorithm:
         self.output_functions = [softmax, linear, sigmoid]
 
         # Serve per evitare che la fitness sia falsata di troppo dalla scelta casuale dei pesi
-        self.K = 3
+        self.K = K
+        
 
     def _genera_individuo(self): #genera un cromosoma casuale
         cromosoma = []
@@ -42,17 +45,17 @@ class GeneticAlgorithm:
 
     def _complessita(self, individuo):
         params = 0
-        prev = 4 # n of inputs
+        prev = self.n_feature # n of inputs
         for n_neuroni, _ in individuo:
             params += n_neuroni * prev + n_neuroni # pesi + bias
             prev = n_neuroni
-        params += 3 * prev + 3 # output layer
+        params += self.n_output * prev + self.n_output # output layer
         return params
 
     def _fitness(self, individuo):
         sum_accuracy = 0
         for _ in range(0,self.K):
-            n = neural_network(individuo, 4,3, self.learning_rate,softmax)
+            n = neural_network(individuo, self.n_feature,self.n_output, self.learning_rate,softmax)
             # ADDESTRAMENTO → training set
             for _ in range(0, self.epochs):
                 x = random.randint(0,len(self.Y_train) - 1)
@@ -64,9 +67,12 @@ class GeneticAlgorithm:
                 if np.argmax(guess) == np.argmax(self.Y_val[i]):
                     correct += 1
             sum_accuracy += correct/len(self.X_val)
+
         accuracy = sum_accuracy/self.K
+
         penalita = self._complessita(individuo)
         fitness = accuracy - self.lambda_ * penalita
+
         return (fitness, accuracy)
         
     def _selezione(self, popolazione, fitness_scores):
@@ -79,8 +85,10 @@ class GeneticAlgorithm:
 
 
     def _crossover(self, genitore1, genitore2):
-        t1 = random.randint(0,len(genitore1)) # potrebbe essere pari a len(genitore)
-        t2 = random.randint(0,len(genitore2)) # significa che prende tutti i geni da tale genitore + gli eventuali dell'altro genitore 
+        t1 = random.randint(0,len(genitore1))
+        t2 = random.randint(0,len(genitore2))
+
+        # caso in cui t1 = 0 e t2 = len(genitore2)
         figlio = genitore1[:t1] + genitore2[t2:]
         if len(figlio) == 0:
             pool = genitore1 + genitore2
@@ -92,7 +100,7 @@ class GeneticAlgorithm:
         for i in range(0,len(individuo)):
             if random.random() < self.mutation_rate:
                 new_layer = ()
-                mut = random.choices([0,1,2],[1,1,1])[0]
+                mut = random.choices([0,1,2],[20,20,1])[0]
                 if mut == 0: # mutano il numero di neuroni
                     new_layer = (random.randint(4,32), individuo[i][1])
                     individuo[i] = new_layer
@@ -100,11 +108,14 @@ class GeneticAlgorithm:
                     new_layer = (individuo[i][0], random.choice(self.hidden_functions))
                     individuo[i] = new_layer
                 else:
+                    
                     if random.randint(0,1) == 0 and len(individuo) > 1:
                         pos = random.randint(0,len(individuo) - 1)
+                        
                         del individuo[pos]
                         break # necessario perché dopo l'elimiazione gli indici non sono più validi
                     else:
+                        
                         pos = random.randint(0,len(individuo))
                         individuo.insert(pos, (random.randint(4,32),random.choice(self.hidden_functions)))
         return individuo

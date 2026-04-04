@@ -1096,6 +1096,11 @@ La tabella seguente riassume i valori ottimali identificati:
     \item Implementazione di Early Stopping nella valutazione della fitness
     \item Implementazione di Adam come ottimizzatore alternativo a SGD
     \item Esposizione di K come parametro configurabile del costruttore
+    \item Includere il learning rate all'interno del cromosoma di ogni individuo. Quindi l'obiettivo si sposterebbe nella ricerca dell'architettura e del miglior learning rate con cui utilizzarla: un architettura complessa potrebbe beneficiare di un learning rate molto basso a differenza di un'architettura molto semplice.
+    
+    In questo progetto si è scelto di usare un algoritmo genetico per trovare automaticamente la migliore architettura di rete neurale in funzione di un dataset specifico. Il progetto può essere interpretato come un caso particolare di Neural Architecture Search, in cui lo spazio di ricerca è definito da numero di layer, neuroni per layer e funzioni di attivazione. \\
+    Potrebbe venire naturale chiedersi se abbia senso includere anche il learning rate nel cromosoma, trattandolo come un ulteriore iperparametro da ottimizzare. Concettualmente sarebbe corretto — architetture diverse potrebbero convergere meglio con learning rate diversi. Tuttavia questa scelta presenta due criticità: da un lato aumenta la dimensionalità dello spazio di ricerca, rendendo più difficile la convergenza del GA con lo stesso numero di generazioni e popolazione; dall'altro mescola due livelli concettualmente distinti, l'architettura della rete e il processo di training, rendendo il sistema meno interpretabile. \\
+    Il progetto è stato sviluppato con l'obiettivo specifico di ottimizzare l'architettura, mantenendo il learning rate come iperparametro fisso. L'inclusione del learning rate nel cromosoma rappresenta tuttavia una direzione interessante per sviluppi futuri.
 \end{itemize}
 
 \newpage
