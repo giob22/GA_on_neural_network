@@ -32,7 +32,7 @@ for _ in range(EPOCHS_BASELINE):
     rete_baseline.feedback(x_train[idx], y_train[idx])
 correct = sum(
     1 for i in range(len(x_val))
-    if np.argmax(rete_baseline.feedforward(x_val[i])) == np.argmax(y_val[i])
+    if np.argmax(rete_baseline.feedforward(x_val[i])['guess']) == np.argmax(y_val[i])
 )
 accuracy_baseline = correct / len(x_val)
 print(f"Baseline accuracy: {round(accuracy_baseline * 100, 2)}%")
