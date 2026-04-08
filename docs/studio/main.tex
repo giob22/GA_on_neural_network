@@ -949,6 +949,182 @@ sacrificando troppa accuracy. Lambda è troppo aggressivo.
 \textit{Valore ottimale: \textbf{lambda = 0.00005}}
 
 % ────────────────────────────────────────────────────────────
+\subsection{Evoluzione della Penalità: da Lineare a Logaritmica}
+% ────────────────────────────────────────────────────────────
+
+\subsubsection{Motivazione del Cambiamento}
+
+L'analisi del Test~2 ha evidenziato un problema strutturale nella formula lineare:
+il coefficiente $\lambda$ è difficile da calibrare perché il numero di parametri
+$|\theta|$ di un'architettura varia di \emph{ordini di grandezza} nello spazio
+di ricerca, mentre l'accuracy è confinata in $[0, 1]$.
+
+\medskip
+
+Le due formule a confronto sono:
+
+\begin{equation}
+    \text{fitness}_{\text{lin}} = \text{accuracy} - \lambda_{\text{lin}} \cdot |\theta|
+    \label{eq:fitness_lin}
+\end{equation}
+
+\begin{equation}
+    \text{fitness}_{\text{log}} = \text{accuracy} - \lambda_{\text{log}} \cdot \log_{10}(|\theta|)
+    \label{eq:fitness_log}
+\end{equation}
+
+\noindent
+Il problema concreto emerge quando si osserva quanto varia effettivamente la penalità
+tra un'architettura minima e una massimale, a parità di $\lambda$:
+
+\begin{center}
+\begin{tabular}{lcccc}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{Architettura}} &
+    \textcolor{white}{\textbf{$|\theta|$}} &
+    \textcolor{white}{\textbf{$\log_{10}(|\theta|)$}} &
+    \textcolor{white}{\textbf{Pen. lineare ($\lambda$=0.00005)}} &
+    \textcolor{white}{\textbf{Pen. log$_{10}$ ($\lambda$=0.05)}} \\
+    \midrule
+    1L $\times$ 7n     &    59 & 1.77 & 0.003 & 0.089 \\
+    \rowcolor{rowgray}
+    1L $\times$ 31n    &   251 & 2.40 & 0.013 & 0.120 \\
+    6L medi            &  7545 & 3.88 & 0.377 & 0.194 \\
+    \rowcolor{rowgray}
+    7L grandi          & 13670 & 4.14 & 0.684 & 0.207 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+
+\noindent
+Con penalità lineare la penalità cresce di un \textbf{fattore 228$\times$} passando
+dalla rete minima a quella massimale: qualunque valore di $\lambda$ funziona solo
+per un sottoinsieme ristretto delle architetture che il GA può esplorare.
+Con $\log_{10}$, invece, la penalità cresce di un fattore \textbf{2.3$\times$} sullo
+stesso range, rendendo $\lambda$ stabile indipendentemente dalla scala delle reti generate.
+
+\begin{attenzione}
+Il valore ottimale di $\lambda$ con penalità logaritmica \textbf{non è confrontabile}
+con quello usato in precedenza per la penalità lineare. Con la formula lineare era
+$\lambda = 0.00005$; con $\log_{10}$ il range utile è dell'ordine di $[0.05,\, 0.30]$,
+perché la grandezza su cui si moltiplica ($\log_{10}(|\theta|) \approx 1.8$--$4.1$)
+è completamente diversa da $|\theta|$ ($\approx 59$--$13670$).
+\end{attenzione}
+
+\begin{domanda}
+Perché $\log_{10}$ e non il logaritmo naturale $\ln$?
+
+La scelta è convenzionale: $\log_{10}(|\theta|)$ conta gli \emph{ordini di grandezza}
+in base 10 (le ``cifre'' del numero), il che lo rende intuitivo da interpretare.
+Dal punto di vista matematico, $\ln(x) = \log_{10}(x) \cdot \ln(10) \approx
+2.303 \cdot \log_{10}(x)$, quindi usare $\ln$ equivale a usare $\log_{10}$ con
+$\lambda$ moltiplicato per $\approx 2.303$: i due approcci sono equivalenti a meno
+di una riscalatura di $\lambda$.
+\end{domanda}
+
+\subsubsection{Test 2b — Sensibilità di $\lambda$ con Penalità Logaritmica}
+
+\noindent\textbf{Configurazione} (identica al Test~2 per confronto diretto):
+
+\begin{center}
+\begin{tabular}{ll}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{Parametro}} & \textcolor{white}{\textbf{Valore}} \\
+    \midrule
+    population\_size & 20 \\
+    \rowcolor{rowgray}
+    generations      & 30 \\
+    mutation\_rate   & 0.20 \\
+    \rowcolor{rowgray}
+    learning\_rate   & 0.01 \\
+    epochs           & 150 \\
+    \rowcolor{rowgray}
+    tournament\_size & 3 \\
+    K                & 3 \\
+    \rowcolor{rowgray}
+    \textbf{lambda (variato)} & \textbf{0.0 / 0.05 / 0.15 / 0.30} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lccccc}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{$\lambda$}} &
+    \textcolor{white}{\textbf{best\_accuracy}} &
+    \textcolor{white}{\textbf{best\_fitness}} &
+    \textcolor{white}{\textbf{n\_layer}} &
+    \textcolor{white}{\textbf{n\_params}} &
+    \textcolor{white}{\textbf{$\log_{10}(|\theta|)$}} \\
+    \midrule
+    0.00  & 97.78\% & 97.78 & 7 & 13670 & 4.14 \\
+    \rowcolor{rowgray}
+    0.05  & 100.00\% & 80.61 & 6 & 7545 & 3.88 \\
+    0.15  & 90.00\% & 54.00 & 1 &  251 & 2.40 \\
+    \rowcolor{rowgray}
+    0.30  & 71.11\% & 17.99 & 1 &   59 & 1.77 \\
+    \midrule
+    Baseline & 33.33\% & --- & 2 & --- & --- \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{img/test_lambda_log.png}
+    \caption{Evoluzione di fitness e accuracy al variare di $\lambda$ con penalità $\log_{10}$.}
+    \label{fig:lambda_log}
+\end{figure}
+
+\noindent\textbf{Osservazioni principali:}
+
+\textbf{Con $\lambda=0$} fitness e accuracy coincidono (nessuna penalità): il GA trova
+una rete a 7 layer con 13670 parametri, maggiore di quella trovata nel Test~2 con la
+stessa configurazione (5447 parametri). Senza alcun vincolo, l'evoluzione converge su
+architetture molto profonde e larghe.
+
+\textbf{Con $\lambda=0.05$} la penalità è leggera ($\approx 0.194$ per una rete da 7545
+parametri). Il GA riesce a trovare una rete a 6 layer che raggiunge il \textbf{100\% di
+accuracy} sul validation set. Tuttavia la rete rimane complessa: la fitness è scesa a
+80.61, segno che la penalità è ancora troppo lieve per spingere verso soluzioni semplici.
+
+\textbf{Con $\lambda=0.15$} si osserva il cambiamento più significativo: il GA collassa
+su un'architettura a \textbf{1 solo hidden layer} con 251 parametri, mantenendo comunque
+una accuracy del 90\%. Questo è il compromesso più interessante: una riduzione di 30$\times$
+nei parametri rispetto a $\lambda=0.05$ a fronte di soli 10 punti percentuali di accuracy
+persi. La fitness (54.00) riflette correttamente il costo della penalità su una rete
+comunque compatta.
+
+\textbf{Con $\lambda=0.30$} la penalità è eccessiva: il GA seleziona reti con soli 59
+parametri (7 neuroni), troppo poche per apprendere il dataset Iris in modo adeguato.
+L'accuracy crolla al 71.11\% e la fitness di 17.99 è molto bassa. La penalità ha preso
+il sopravvento sulla qualità della soluzione.
+
+\textbf{Baseline a 33.33\%}: questa esecuzione ha prodotto una baseline particolarmente
+bassa — pari alla probabilità casuale su 3 classi — a causa della variabilità
+nell'addestramento con un numero ridotto di epoche (450) senza seed fisso. Questo
+conferma che la baseline a rete fissa è sensibile all'inizializzazione casuale dei pesi;
+ogni configurazione GA supera ampiamente questo risultato.
+
+\begin{concetto}{Interpretazione di $\lambda$ con penalità logaritmica}
+Con $\log_{10}$, il valore di $\lambda$ esprime approssimativamente \emph{quanta
+accuracy si è disposti a cedere per ogni ordine di grandezza aggiuntivo di parametri}.
+Con $\lambda = 0.15$, una rete 10$\times$ più grande dell'attuale viene penalizzata
+di circa 15 punti percentuali di fitness: un costo sufficiente a scoraggiare la
+complessità eccessiva senza annullare il segnale della accuracy.
+\end{concetto}
+
+\textit{Valore ottimale: \textbf{$\lambda = 0.15$}} — offre il miglior compromesso tra
+semplicità dell'architettura (1 layer, 251 parametri) e qualità della soluzione (90\%
+accuracy), risultando la configurazione più robusta e facilmente difendibile come
+scelta progettuale.
+
+% ────────────────────────────────────────────────────────────
 \subsection{Test 3 — Numero di Epoche}
 % ────────────────────────────────────────────────────────────
 

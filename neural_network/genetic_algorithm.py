@@ -2,6 +2,11 @@ import random
 from .nn_layer import *
 from .nn_engine import neural_network
 
+MIN_NEURONI = 4
+MAX_NEURONI = 64
+MIN_LAYER = 1
+MAX_LAYER = 10
+
 class GeneticAlgorithm:
 
     def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val):
@@ -57,16 +62,16 @@ class GeneticAlgorithm:
         """
         @brief Genera un cromosoma casuale che rappresenta un'architettura di rete neurale.
 
-        Sceglie casualmente un numero di hidden layer tra 1 e 4; per ognuno
-        sorteggia neuroni (4–32) e funzione di attivazione da hidden_functions.
+        Sceglie casualmente un numero di hidden layer tra MIN_LAYER e MAX_LAYER; per ognuno
+        sorteggia neuroni (MIN_NEURONI–MAX_NEURONI) e funzione di attivazione da hidden_functions.
 
         @return (list[tuple[int, callable]]) Lista di tuple (n_neuroni, funzione),
                 una per ogni hidden layer.
         """
         cromosoma = []
-        n_hidden_layer = random.randint(1, 4)
+        n_hidden_layer = random.randint(MIN_LAYER, MAX_LAYER)
         for _ in range(0, n_hidden_layer):
-            cromosoma.append((random.randint(4, 32), random.choice(self.hidden_functions)))
+            cromosoma.append((random.randint(MIN_NEURONI, MAX_NEURONI), random.choice(self.hidden_functions)))
 
         return cromosoma
 
@@ -75,10 +80,15 @@ class GeneticAlgorithm:
         """
         @brief Calcola il numero totale di parametri (pesi + bias) di un'architettura.
 
-        Usato come penalità nella funzione di fitness per scoraggiare reti troppo grandi.
+        Conta tutti i parametri addestrabili della rete corrispondente al cromosoma:
+        per ogni hidden layer (n_neuroni × n_prev + n_neuroni), più il layer di output.
+        Il valore restituito è il conteggio grezzo; la trasformazione logaritmica
+        viene applicata in _fitness per stabilizzare la scala della penalità.
 
         @param individuo (list[tuple[int, callable]]) Cromosoma che descrive l'architettura.
-        @return (int) Numero totale di parametri della rete corrispondente.
+        @return (int) Numero totale di parametri della rete (pesi + bias di tutti i layer).
+        @note Il valore viene passato a np.log10() in _fitness; la funzione restituisce
+              sempre un intero >= 1 (almeno il layer di output esiste).
         """
         params = 0
         prev = self.n_feature # n of inputs
@@ -94,13 +104,26 @@ class GeneticAlgorithm:
 
         Ripete K volte: costruisce la rete con quell'architettura (pesi casuali),
         la addestra sul training set per self.epochs epoche, valuta l'accuracy sul
-        validation set. La fitness finale penalizza la complessità dell'architettura.
+        validation set. La fitness finale penalizza la complessità con una penalità
+        logaritmica per rendere lambda_ stabile indipendentemente dalla scala dei parametri.
+
+        Formula della fitness:
+        @code
+          fitness = accuracy - lambda_ * log10(n_params)
+        @endcode
+
+        La scelta di log10 invece di una penalità lineare (accuracy - lambda_ * n_params)
+        è motivata dalla stabilità della scala: n_params varia tipicamente di 2-3 ordini
+        di grandezza nello spazio di ricerca (es. 50–50000), mentre log10(n_params) varia
+        solo di ~1.7–4.7. Questo rende lambda_ calibrabile con valori nell'ordine di
+        [0.05, 0.30] anziché dover usare valori dell'ordine di 1e-5 per la versione lineare.
 
         @param individuo (list[tuple[int, callable]]) Cromosoma da valutare.
         @return (tuple[float, float]) Coppia (fitness, accuracy) dove:
-                - fitness = accuracy - lambda_ * n_params
-                - accuracy = media delle K valutazioni sul validation set.
+                - fitness = accuracy - lambda_ * log10(n_params)
+                - accuracy = media delle K valutazioni sul validation set, in [0, 1].
         @note K valutazioni indipendenti riducono la varianza dovuta all'inizializzazione casuale.
+        @note La fitness può essere negativa se lambda_ è molto alto e la rete è complessa.
         """
         sum_accuracy = 0
         for _ in range(0, self.K):
@@ -120,7 +143,7 @@ class GeneticAlgorithm:
         accuracy = sum_accuracy / self.K
 
         penalita = self._complessita(individuo)
-        fitness = accuracy - self.lambda_ * penalita
+        fitness = accuracy - self.lambda_ * (np.log10(penalita))
 
         return (fitness, accuracy)
 
@@ -169,7 +192,7 @@ class GeneticAlgorithm:
 
         Per ogni gene, con probabilità mutation_rate, applica una delle tre mutazioni
         con pesi [20, 20, 1]:
-        - tipo 0: cambia il numero di neuroni del layer (4–32);
+        - tipo 0: cambia il numero di neuroni del layer (MIN_NEURONI–MAX_NEURONI);
         - tipo 1: cambia la funzione di attivazione;
         - tipo 2: aggiunge o rimuove un layer intero.
 
@@ -185,7 +208,7 @@ class GeneticAlgorithm:
                 new_layer = ()
                 mut = random.choices([0, 1, 2], [20, 20, 1])[0]
                 if mut == 0: # mutano il numero di neuroni
-                    new_layer = (random.randint(4, 32), individuo[i][1])
+                    new_layer = (random.randint(MIN_NEURONI, MAX_NEURONI), individuo[i][1])
                     individuo[i] = new_layer
                 elif mut == 1: # muta la funzione di attivazione
                     new_layer = (individuo[i][0], random.choice(self.hidden_functions))
@@ -200,7 +223,7 @@ class GeneticAlgorithm:
                     else:
 
                         pos = random.randint(0, len(individuo))
-                        individuo.insert(pos, (random.randint(4, 32), random.choice(self.hidden_functions)))
+                        individuo.insert(pos, (random.randint(MIN_NEURONI, MAX_NEURONI), random.choice(self.hidden_functions)))
         return individuo
 
 
