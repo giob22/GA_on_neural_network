@@ -68,8 +68,9 @@ nn = neural_network(
 # Addestramento
 nn.feedback(input=[1, 0], target=[1])
 
-# Predizione
-predizione = nn.feedforward([1, 0])
+# Predizione — restituisce un dict con chiave 'guess'
+predizione = nn.feedforward([1, 0])['guess']
+# Nota: lancia ValueError se len(input) != size_input
 ```
 
 ## Esempi

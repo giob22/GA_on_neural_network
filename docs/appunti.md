@@ -141,7 +141,7 @@ PER ogni epoca in range(EPOCHS_BASELINE):
 # valuta la baseline sul validation set
 correct ← 0
 PER ogni i in range(len(X_val)):
-    guess ← rete_baseline.feedforward(X_val[i])
+    guess ← rete_baseline.feedforward(X_val[i])['guess']
     SE argmax(guess) == argmax(Y_val[i]):
         correct += 1
 accuracy_baseline ← correct / len(X_val)

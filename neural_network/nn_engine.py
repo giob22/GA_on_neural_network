@@ -1,13 +1,25 @@
 import numpy as np
-from .nn_layer import *
+from .nn_layer import layer
 
 class neural_network:
     def __init__(self, hidden_config, size_input, size_output, learning_rate, output_function):
+        """
+        @brief Costruisce una rete neurale multi-layer con architettura personalizzabile.
+
+        @param hidden_config (list[tuple[int, callable]]) Lista di tuple (n_neuroni, funzione_attivazione)
+               che descrive ogni hidden layer. Esempio: [(8, relu), (4, sigmoid)].
+        @param size_input (int) Numero di feature in input.
+        @param size_output (int) Numero di neuroni nel layer di output.
+        @param learning_rate (float) Passo di aggiornamento dei pesi nella backpropagation.
+        @param output_function (callable) Funzione di attivazione del layer di output.
+        @note Il layer di output viene sempre aggiunto automaticamente; non va incluso in hidden_config.
+        """
         self.size = len(hidden_config) + 1 #1 per l'output layer sempre presente
+        self.input_size = size_input
         self.output_size = size_output
         self.lr = learning_rate
 
-        
+
         self.hiddens_layers = []
 
         # creo i layer intermedi (hidden) + input layer
@@ -15,48 +27,76 @@ class neural_network:
         for rows, f in hidden_config:
             self.hiddens_layers.append(layer(rows, prev, f))
             prev = rows
-            
+
         self.output_layer = layer(size_output, prev, output_function)
-        
-        # necessari per la backpropagation
-        self.valori_intermedi = []
-        self.valori_input = []
+
 
     def feedforward(self, x):
-        self.valori_input = []
-        self.valori_intermedi = []
-        
+        """
+        @brief Esegue il passo forward della rete neurale.
+
+        Propaga l'input attraverso tutti gli hidden layer e il layer di output,
+        salvando i valori pre-attivazione e gli input di ogni layer per la
+        backpropagation.
+
+        @param x (array-like) Vettore di input di lunghezza size_input.
+        @return (dict) Dizionario con le chiavi:
+                - 'guess' (numpy.ndarray): output del layer finale dopo la funzione di attivazione.
+                - 'input_vals' (list[numpy.ndarray]): input di ogni layer prima della moltiplicazione.
+                - 'intermediate_vals' (list[numpy.ndarray]): valori pre-attivazione di ogni layer.
+        @note Lancia ValueError se la dimensione di x non corrisponde a size_input.
+        """
+        valori_input = []
+        valori_intermedi = []
+
         x = np.array(x).reshape(-1,1)
 
+        if x.shape[0] != self.input_size:
+            raise ValueError(f"Input atteso di dimensione {self.input_size}, ricevuto {x.shape[0]}")
 
         t = x
 
         for elem in self.hiddens_layers:
-            self.valori_input.append(t)
+            valori_input.append(t)
             t = elem.W @ t + elem.b
-            self.valori_intermedi.append(t)
-            
+            valori_intermedi.append(t)
+
             t = elem.activation_function(t)
 
-        self.valori_input.append(t)
+        valori_input.append(t)
 
 
-        
+
         t = self.output_layer.W @ t + self.output_layer.b
-        
-        self.valori_intermedi.append(t)
+
+        valori_intermedi.append(t)
         res = self.output_layer.func(t)
 
-        return res
-    
+        return {'guess': res, 'input_vals': valori_input, 'intermediate_vals': valori_intermedi}
+
     def feedback(self, input, target):
+        """
+        @brief Esegue un passo di backpropagation e aggiorna pesi e bias.
+
+        Chiama internamente feedforward per ottenere guess e valori intermedi,
+        calcola i delta con la regola della catena partendo dall'output, poi
+        aggiorna ogni layer con la discesa del gradiente (SGD).
+
+        @param input (array-like) Vettore di input di lunghezza size_input.
+        @param target (array-like) Vettore target atteso di lunghezza size_output.
+        @note Modifica direttamente i pesi e i bias di tutti i layer (side effect).
+        @note Utilizza la MSE come funzione di loss.
+        """
         target = np.array(target).reshape(-1,1)
-        guess = self.feedforward(input)
+        res = self.feedforward(input)
+        guess = res['guess']
+        valori_intermedi = res['intermediate_vals']
+        valori_input = res['input_vals']
         deltas = []
-        
-        
+
+
         # delta dell'output
-        delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(self.valori_intermedi[-1])
+        delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(valori_intermedi[-1])
         deltas.append(delta_out)
 
 
@@ -66,63 +106,68 @@ class neural_network:
 
         current_delta = delta_out
         next_W = self.output_layer.W
-        
+
 
         for i in range(len(self.hiddens_layers) - 1, -1, -1):
-            current_delta = (next_W.T @ current_delta) * self.hiddens_layers[i].dfunc(self.valori_intermedi[i])
+            current_delta = (next_W.T @ current_delta) * self.hiddens_layers[i].dfunc(valori_intermedi[i])
 
             deltas.append(current_delta)
 
             next_W = self.hiddens_layers[i].W
 
         # AGGIORNAMENTO DEI PARAMETRI
-        
+
         # PESI e BIAS
         # in modo che facciamo corrispondere gli indici dei delta
         # Se prima era [output, hidden_N, ..., hidden_0]
         # Ora diventa [hidden_0, hidden_1, ..., output]
         deltas_rev = list(reversed(deltas))
-        
+
         for i in range(len(self.hiddens_layers)):
-            self.hiddens_layers[i].W -= self.lr * (deltas_rev[i] @ self.valori_input[i].T)
+            self.hiddens_layers[i].W -= self.lr * (deltas_rev[i] @ valori_input[i].T)
             self.hiddens_layers[i].b -= self.lr * deltas_rev[i]
 
-        self.output_layer.W -= self.lr * (deltas_rev[-1] @ self.valori_input[-1].T)
+        self.output_layer.W -= self.lr * (deltas_rev[-1] @ valori_input[-1].T)
         self.output_layer.b -= self.lr * deltas_rev[-1]
-    
 
-    def MSE(self,target, guess):
-        somma = 0
-        for i in range(0,self.output_size):
-            somma += (target[i] - guess[i])**2
-        return somma/2
-    def dMSE(self,target, guess):
+
+    def MSE(self, target, guess):
+        """
+        @brief Calcola la Mean Squared Error tra target e predizione.
+
+        La formula usata è MSE = sum((target - guess)^2) / 2. Il divisore 2
+        semplifica la derivata (la costante si cancella).
+
+        @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
+        @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
+        @return (float) Valore scalare della loss.
+        """
+        return np.sum((target - guess)**2) / 2
+
+    def dMSE(self, target, guess):
+        """
+        @brief Calcola la derivata della MSE rispetto all'output della rete.
+
+        @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
+        @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
+        @return (numpy.ndarray) Gradiente della loss rispetto a guess: (guess - target).
+        """
         return guess - target
 
-    
+
 
     def __str__(self):
+        """
+        @brief Rappresentazione testuale dell'architettura della rete.
+
+        @return (str) Stringa formattata con numero di layer e neuroni per layer.
+        @note Il conteggio neuroni degli hidden layer usa W.size (pesi totali),
+              mentre l'output layer usa W.shape[0] (numero neuroni).
+        """
         testo = "-"* 35 + "\n" +f"Caratteristiche della rete neurale:\n#layer: {self.size:<10}\n"
         i = 0
         for x in self.hiddens_layers:
             testo += f"{i}. neuroni: {x.W.size:<10}\n"
             i+=1
-        testo += f"output. neuroni: {self.output_layer.W.size:<10}\n" + "-"*35+ "\n"
+        testo += f"output. neuroni: {self.output_layer.W.shape[0]:<10}\n" + "-"*35+ "\n"
         return testo
-        
-        
-        
-
-
-        
-
-
-
-
-
-
-
-
-
-
-

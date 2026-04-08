@@ -17,16 +17,16 @@
 \contentsline {subsection}{\numberline {3.1}Struttura del Progetto}{12}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Rete Neurale (\texttt {nn\_engine.py})}{12}{subsection.3.2}%
 \contentsline {subsubsection}{\numberline {3.2.1}Modifica al Costruttore}{12}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Funzioni di Attivazione per Layer}{12}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.2}Funzioni di Attivazione per Layer}{13}{subsubsection.3.2.2}%
 \contentsline {subsection}{\numberline {3.3}Algoritmo Genetico (\texttt {genetic\_algorithm.py})}{13}{subsection.3.3}%
 \contentsline {subsubsection}{\numberline {3.3.1}Rappresentazione del Cromosoma}{13}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Funzione di Fitness con Penalità di Complessità}{13}{subsubsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {3.3.3}Crossover}{14}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.2}Funzione di Fitness con Penalità di Complessità}{14}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Crossover}{15}{subsubsection.3.3.3}%
 \contentsline {subsubsection}{\numberline {3.3.4}Mutazione}{15}{subsubsection.3.3.4}%
 \contentsline {subsubsection}{\numberline {3.3.5}Elitismo nel metodo \texttt {run()}}{16}{subsubsection.3.3.5}%
 \contentsline {subsection}{\numberline {3.4}Preprocessing dei Dati}{16}{subsection.3.4}%
 \contentsline {subsubsection}{\numberline {3.4.1}Split Train/Validation}{16}{subsubsection.3.4.1}%
-\contentsline {subsubsection}{\numberline {3.4.2}Normalizzazione}{16}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.2}Normalizzazione}{17}{subsubsection.3.4.2}%
 \contentsline {subsubsection}{\numberline {3.4.3}One-Hot Encoding}{17}{subsubsection.3.4.3}%
 \contentsline {section}{\numberline {4}Concetti Trasversali Importanti}{18}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Overfitting}{18}{subsection.4.1}%

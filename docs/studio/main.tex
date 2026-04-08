@@ -504,20 +504,36 @@ della classe \texttt{neural\_network}. Il parametro \texttt{size\_hidden}
 def __init__(self, hidden_config, size_input, size_output,
              learning_rate, output_function):
     self.size = len(hidden_config) + 1
+    self.input_size = size_input
+    self.output_size = size_output
+    self.lr = learning_rate
     self.hiddens_layers = []
     prev = size_input
     for n_neuroni, f in hidden_config:
         self.hiddens_layers.append(layer(n_neuroni, prev, f))
         prev = n_neuroni
     self.output_layer = layer(size_output, prev, output_function)
-    self.valori_intermedi = []
-    self.valori_input = []
 \end{lstlisting}
 
 La variabile \texttt{prev} tiene traccia del numero di neuroni del layer
 precedente, che determina le colonne della matrice dei pesi del layer
 successivo. La matrice pesi di ogni layer ha forma
 $(\text{n\_neuroni\_corrente} \times \text{n\_neuroni\_precedente})$.
+
+Il valore \texttt{input\_size} viene salvato nel costruttore per permettere
+a \texttt{feedforward} di verificare che il vettore fornito abbia la
+dimensione corretta:
+
+\begin{lstlisting}[caption={Validazione dell'input in feedforward}]
+def feedforward(self, x):
+    x = np.array(x).reshape(-1, 1)
+    if x.shape[0] != self.input_size:
+        raise ValueError(
+            f"Input atteso di dimensione {self.input_size}, "
+            f"ricevuto {x.shape[0]}"
+        )
+    ...
+\end{lstlisting}
 
 \subsubsection{Funzioni di Attivazione per Layer}
 
@@ -568,7 +584,7 @@ def _fitness(self, individuo):
             n.feedback(self.X_train[x], self.Y_train[x])
         correct = 0
         for i in range(len(self.Y_val)):
-            guess = n.feedforward(self.X_val[i])
+            guess = n.feedforward(self.X_val[i])['guess']
             if np.argmax(guess) == np.argmax(self.Y_val[i]):
                 correct += 1
         sum_accuracy += correct / len(self.X_val)

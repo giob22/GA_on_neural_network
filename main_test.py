@@ -216,7 +216,7 @@ GENERATIONS = 30
 MUTATION_RATE = 0.2
 TOURNAMENT_SIZE = 5
 EPOCHS =  300 #150
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
 LAMBDA_ = 0.0005
 
 EPOCHS_BASELINE = K * EPOCHS
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     # valutiamo la baseline sul validation set
     correct = 0
     for i in range(0, len(x_val)):
-        guess = rete_baseline.feedforward(x_val[i])
+        guess = rete_baseline.feedforward(x_val[i])['guess']
         if np.argmax(guess) == np.argmax(y_val[i]):
             correct += 1
     accuracy_baseline = correct/len(x_val)

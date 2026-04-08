@@ -25,13 +25,13 @@ def number_params(input_size, individuo, output_size):
 
 K = 5 # numero di addestramenti per individuo
 
-POPULAZION_SIZE = 20
-GENERATIONS = 30
+POPULAZION_SIZE = 40
+GENERATIONS = 20
 MUTATION_RATE = 0.2
 TOURNAMENT_SIZE = 5
-EPOCHS =  300 #150
-LEARNING_RATE = 0.001
-LAMBDA_ = 0.0005
+EPOCHS =  20 #150
+LEARNING_RATE = 0.01
+LAMBDA_ = 0.0001
 
 EPOCHS_BASELINE = K * EPOCHS
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # valutiamo la baseline sul validation set
     correct = 0
     for i in range(0, len(x_val)):
-        guess = rete_baseline.feedforward(x_val[i])
+        guess = rete_baseline.feedforward(x_val[i])['guess']
         if np.argmax(guess) == np.argmax(y_val[i]):
             correct += 1
     accuracy_baseline = correct/len(x_val)
@@ -137,15 +137,20 @@ if __name__ == "__main__":
     mean_accuracy_pct = [v * 100 for v in storia_mean_accuracy]
     baseline_pct      = accuracy_baseline * 100
 
-    fig, axes = plt.subplot_mosaic([
-         ['fitness', 'architettura'],
-         ['accuracy', 'accuracy']],
-         figsize=(10,8))
+    max_hidden = max(len(best_individuo), len(cromosoma_baseline))
+    font_info  = max(8, 12 - max(0, max_hidden+1))
+    
+    fig_height = max(8, 6.5 + max_hidden * 0.5)
 
+    fig, axes = plt.subplot_mosaic([
+         ['accuracy', 'info'],
+         ['accuracy', 'info'],
+         ['fitness', 'fitness']],
+         figsize=(10, fig_height), sharex=True)
 
     ax_fit  = axes['fitness']
     ax_acc  = axes['accuracy']
-    ax_arch = axes['architettura']
+    ax_info = axes['info']
 
     # fig, (ax_acc, ax_fit) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
     fig.suptitle(
@@ -186,8 +191,10 @@ if __name__ == "__main__":
     ax_fit.plot(linespace_gen, best_fitness_pct,
                 color="darkorange", linewidth=2,
                 label="Miglior fitness della generazione")
-    ax_fit.axhline(baseline_pct, color="crimson", linestyle='dashed', linewidth=1.8,
-                   label=f"Baseline backprop ({baseline_pct:.1f}%)")
+    
+    # ax_fit.axhline([baseline_pct], color="crimson", linestyle='dashed', linewidth=1.8,
+                #    label=f"Baseline backprop ({baseline_pct:.1f}%)")
+    # non dovrebbe avere senso comparare la fitness della popolazione con l'accuracy della baseline net
 
     ax_fit.annotate(
         f"{best_fitness_pct[idx_best]:.1f}",
@@ -208,18 +215,38 @@ if __name__ == "__main__":
         fontsize=10
     )
 
-    # grafico a destra: architettura
-    ax_arch.axis('off')
-    testo = "Input: 4 neuroni\n\n"
-    for i, (neuroni, funzione) in enumerate(best_individuo):
-            testo += f"Hidden layer {i + 1}: {neuroni} neuroni → {funzione}\n"
-    testo += f"\n Output: 3 neuroni → {output_function.__name__}"
-    testo += f"\n\nAccuracy: {round(best_accuracy * 100,2)}%"
-    testo += f"\nFitness: {round(best_fitness * 100, 2)}"
-    testo += f"\n#parametri: {number_params(input_size, best_individuo, n_classi)}"
-    ax_arch.text(0.5,0.5, testo, transform=ax_arch.transAxes, fontsize=12, verticalalignment='center', horizontalalignment='center', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+    # pannello destro: migliore architettura + baseline
+    ax_info.axis('off')
 
-    ax_arch.set_title("Migliore architettura trovata")
+    testo_best = "Migliore architettura trovata:\n\nInput: 4 neuroni\n\n"
+    for i, (neuroni, funzione) in enumerate(best_individuo):
+        testo_best += f"Hidden layer {i + 1}: {neuroni:<3} neuroni → {funzione}\n"
+    testo_best += f"\nOutput: 3 neuroni → {output_function.__name__}"
+    testo_best += f"\n\nAccuracy: {round(best_accuracy * 100, 2)}%"
+    testo_best += f"\nFitness: {round(best_fitness * 100, 2)}"
+    testo_best += f"\n#parametri: {number_params(input_size, best_individuo, n_classi)}"
+
+    testo_base = "Architettura Baseline:\n\nInput: 4 neuroni\n\n"
+    for i, (neuroni, funzione) in enumerate(cromosoma_baseline):
+        testo_base += f"Hidden layer {i + 1}: {neuroni:<3} neuroni → {funzione.__name__}\n"
+    testo_base += f"\nOutput: 3 neuroni → {output_function.__name__}"
+    testo_base += f"\n\nAccuracy: {round(accuracy_baseline * 100, 2)} %"
+    testo_base += f"\n#parametri: {number_params(input_size, cromosoma_baseline, n_classi)}"
+
+    # posizioni y adattive: più layer → testo più alto → spazio più equo
+    lines_best = testo_best.count('\n') + 1
+    lines_base = testo_base.count('\n') + 1
+    total      = lines_best + lines_base
+    y_best = 1.0 - lines_best / (2 * total) - 0.02
+    y_base =       lines_base / (2 * total) + 0.02
+
+    ax_info.text(0.5, y_best, testo_best, transform=ax_info.transAxes,
+                 fontsize=font_info, verticalalignment='center', horizontalalignment='center',
+                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+    ax_info.text(0.5, y_base, testo_base, transform=ax_info.transAxes,
+                 fontsize=font_info, verticalalignment='center', horizontalalignment='center',
+                 bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+
 
 
 
