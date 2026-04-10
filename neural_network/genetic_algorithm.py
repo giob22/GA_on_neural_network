@@ -2,6 +2,8 @@ import random
 from .nn_layer import *
 from .nn_engine import neural_network
 
+from concurrent.futures import ProcessPoolExecutor 
+
 MIN_NEURONI = 4
 MAX_NEURONI = 64
 MIN_LAYER = 1
@@ -9,7 +11,7 @@ MAX_LAYER = 10
 
 class GeneticAlgorithm:
 
-    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val):
+    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val, minNeuroni=4, maxNeuroni=64, minLayer=1, maxLayer=10, seed=None):
         """
         @brief Inizializza l'algoritmo genetico per la ricerca automatica dell'architettura.
 
@@ -27,8 +29,30 @@ class GeneticAlgorithm:
         @param Y_Train (numpy.ndarray) Label one-hot del training set, forma (n_campioni, n_output).
         @param X_val (numpy.ndarray) Feature del validation set.
         @param Y_val (numpy.ndarray) Label one-hot del validation set.
+        @param minNeuroni (int) Numero minimo di neuroni per hidden layer generabile. Default: 4.
+        @param maxNeuroni (int) Numero massimo di neuroni per hidden layer generabile. Default: 64.
+        @param minLayer (int) Numero minimo di hidden layer per cromosoma generabile. Default: 1.
+        @param maxLayer (int) Numero massimo di hidden layer per cromosoma generabile. Default: 10.
+        @param seed (int | None) Seed per la riproducibilità. Controlla tutta la casualità strutturale
+               del GA (generazione popolazione, selezione, crossover, mutazione) tramite self.rng.
+               I worker di _fitness ricevono seed derivati (seed + gen*pop_size + idx).
+               Se None, il comportamento è non deterministico. Default: None.
         @note I dati devono essere già normalizzati e splittati prima di essere passati.
+        @note I bounds minNeuroni/maxNeuroni/minLayer/maxLayer sovrascrivono le costanti di modulo
+              MIN_NEURONI, MAX_NEURONI, MIN_LAYER, MAX_LAYER tramite global.
         """
+        global MIN_LAYER
+        global MIN_NEURONI
+        global MAX_LAYER
+        global MAX_NEURONI
+        MIN_LAYER = minLayer
+        MIN_NEURONI = minNeuroni
+        MAX_LAYER = maxLayer
+        MAX_NEURONI = maxNeuroni
+
+        self.seed = seed
+        self.rng = random.Random(seed)  # RNG isolato: non interferisce con il random globale
+
         self.n_feature = n_feature
         self.n_output = n_output
         self.population_size = population_size
@@ -69,9 +93,9 @@ class GeneticAlgorithm:
                 una per ogni hidden layer.
         """
         cromosoma = []
-        n_hidden_layer = random.randint(MIN_LAYER, MAX_LAYER)
+        n_hidden_layer = self.rng.randint(MIN_LAYER, MAX_LAYER)
         for _ in range(0, n_hidden_layer):
-            cromosoma.append((random.randint(MIN_NEURONI, MAX_NEURONI), random.choice(self.hidden_functions)))
+            cromosoma.append((self.rng.randint(MIN_NEURONI, MAX_NEURONI), self.rng.choice(self.hidden_functions)))
 
         return cromosoma
 
@@ -98,7 +122,7 @@ class GeneticAlgorithm:
         params += self.n_output * prev + self.n_output # output layer
         return params
 
-    def _fitness(self, individuo):
+    def _fitness(self, individuo, seed=None):
         """
         @brief Valuta la qualità di un individuo tramite addestramento e misura dell'accuracy.
 
@@ -119,18 +143,22 @@ class GeneticAlgorithm:
         [0.05, 0.30] anziché dover usare valori dell'ordine di 1e-5 per la versione lineare.
 
         @param individuo (list[tuple[int, callable]]) Cromosoma da valutare.
+        @param seed (int | None) Seed per il RNG locale del worker. Se None, non deterministico.
+                   In run() viene passato un seed derivato da self.seed per garantire
+                   riproducibilità anche con ProcessPoolExecutor.
         @return (tuple[float, float]) Coppia (fitness, accuracy) dove:
                 - fitness = accuracy - lambda_ * log10(n_params)
                 - accuracy = media delle K valutazioni sul validation set, in [0, 1].
         @note K valutazioni indipendenti riducono la varianza dovuta all'inizializzazione casuale.
         @note La fitness può essere negativa se lambda_ è molto alto e la rete è complessa.
         """
+        rng = random.Random(seed)  # RNG locale al worker: isolato dagli altri processi
         sum_accuracy = 0
         for _ in range(0, self.K):
             n = neural_network(individuo, self.n_feature, self.n_output, self.learning_rate, softmax)
             # ADDESTRAMENTO → training set
             for _ in range(0, self.epochs):
-                x = random.randint(0, len(self.Y_train) - 1)
+                x = rng.randint(0, len(self.Y_train) - 1)
                 n.feedback(self.X_train[x], self.Y_train[x])
             # VALUTAZIONE → testing set
             correct = 0
@@ -154,11 +182,12 @@ class GeneticAlgorithm:
         Estrae casualmente tournament_size individui dalla popolazione e
         restituisce quello con la fitness più alta.
 
-        @param popolazione (list) Lista dei cromosomi della generazione corrente.
-        @param fitness_scores (list[float]) Lista di fitness corrispondente a ogni individuo.
+        @param popolazione (list[list[tuple[int, callable]]]) Lista dei cromosomi della generazione corrente.
+        @param fitness_scores (list[float]) Lista di fitness corrispondente a ogni individuo,
+               con lo stesso ordine di popolazione.
         @return (list[tuple[int, callable]]) Il cromosoma vincitore del torneo.
         """
-        idx_t = random.sample(range(0, len(popolazione)), k=self.tournament_size)
+        idx_t = self.rng.sample(range(0, len(popolazione)), k=self.tournament_size)
         idx_sorted = sorted(idx_t, key=lambda x: fitness_scores[x], reverse=True)
         return popolazione[idx_sorted[0]]
 
@@ -176,14 +205,14 @@ class GeneticAlgorithm:
         @note Se il crossover produce un figlio vuoto, viene inserito un gene casuale
               dal pool dei due genitori.
         """
-        t1 = random.randint(0, len(genitore1))
-        t2 = random.randint(0, len(genitore2))
+        t1 = self.rng.randint(0, len(genitore1))
+        t2 = self.rng.randint(0, len(genitore2))
 
         # caso in cui t1 = 0 e t2 = len(genitore2)
         figlio = genitore1[:t1] + genitore2[t2:]
         if len(figlio) == 0:
             pool = genitore1 + genitore2
-            figlio.append(random.choice(pool))
+            figlio.append(self.rng.choice(pool))
         return figlio
 
     def _mutazione(self, individuo):
@@ -204,26 +233,26 @@ class GeneticAlgorithm:
         """
         individuo = [layer_ for layer_ in individuo]
         for i in range(0, len(individuo)):
-            if random.random() < self.mutation_rate:
+            if self.rng.random() < self.mutation_rate:
                 new_layer = ()
-                mut = random.choices([0, 1, 2], [20, 20, 1])[0]
+                mut = self.rng.choices([0, 1, 2], [20, 20, 1])[0]
                 if mut == 0: # mutano il numero di neuroni
-                    new_layer = (random.randint(MIN_NEURONI, MAX_NEURONI), individuo[i][1])
+                    new_layer = (self.rng.randint(MIN_NEURONI, MAX_NEURONI), individuo[i][1])
                     individuo[i] = new_layer
                 elif mut == 1: # muta la funzione di attivazione
-                    new_layer = (individuo[i][0], random.choice(self.hidden_functions))
+                    new_layer = (individuo[i][0], self.rng.choice(self.hidden_functions))
                     individuo[i] = new_layer
                 else:
 
-                    if random.randint(0, 1) == 0 and len(individuo) > 1:
-                        pos = random.randint(0, len(individuo) - 1)
+                    if self.rng.randint(0, 1) == 0 and len(individuo) > 1:
+                        pos = self.rng.randint(0, len(individuo) - 1)
 
                         del individuo[pos]
                         break # necessario perché dopo l'elimiazione gli indici non sono più validi
                     else:
 
-                        pos = random.randint(0, len(individuo))
-                        individuo.insert(pos, (random.randint(MIN_NEURONI, MAX_NEURONI), random.choice(self.hidden_functions)))
+                        pos = self.rng.randint(0, len(individuo))
+                        individuo.insert(pos, (self.rng.randint(MIN_NEURONI, MAX_NEURONI), self.rng.choice(self.hidden_functions)))
         return individuo
 
 
@@ -244,6 +273,9 @@ class GeneticAlgorithm:
                 - storia_mean_accuracy (list[float]): accuracy media della popolazione per generazione.
         @note Il miglior individuo di ogni generazione viene preservato nella generazione
               successiva (elitismo).
+        @note Se self.seed è impostato, i worker di ProcessPoolExecutor ricevono seed
+              deterministici derivati come `seed + gen * population_size + idx_individuo`,
+              garantendo riproducibilità completa anche con valutazione parallela.
         """
         # Cosa deve restituire:
         # - miglior architettura trovata
@@ -256,12 +288,21 @@ class GeneticAlgorithm:
         storia_mean_accuracy = [] # media per generazione dell'accuracy
 
         best_individuo = None
-        best_fitness = 0
+        best_fitness = -float('inf')
+        best_accuracy = 0.0
 
         for i in range(0, self.generations):
 
             # valutiamo la fitness di ogni individuo della popolazione
-            risultati = [self._fitness(individuo) for individuo in popolazione]
+            # risultati = [self._fitness(individuo) for individuo in popolazione]
+            # I seed per i worker sono derivati dal seed principale + indice generazione + indice individuo,
+            # così ogni valutazione è deterministica e distinta anche tra generazioni diverse.
+            worker_seeds = [
+                self.seed + i * self.population_size + j if self.seed is not None else None
+                for j in range(len(popolazione))
+            ]
+            with ProcessPoolExecutor() as executor:
+                risultati = list(executor.map(self._fitness, popolazione, worker_seeds))
             fitness_scores  = [r[0] for r in risultati]
             accuracy_scores = [r[1] for r in risultati]
 
@@ -277,16 +318,21 @@ class GeneticAlgorithm:
             # salviamo le statistiche
             storia_best_fitness.append(max(fitness_scores))
             storia_best_accuracy.append(max(accuracy_scores))
+            
+            # storia_best_fitness.append(max(fitness_scores))
+            # storia_best_accuracy.append(max(accuracy_scores))
+
             storia_mean_accuracy.append(np.mean(accuracy_scores))
 
             # stampa dell'avanzamento
-            print(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5}% | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}% ")
+            print(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5} | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}% ")
 
 
 
             # Nuova popolazione
             new_population = []
 
+            # elitismo
             if best_individuo is not None:
                 new_population.append(best_individuo)
 
