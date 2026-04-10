@@ -105,7 +105,7 @@ def softmax(x):
     @note Se tutti i valori di exp(x - max(x)) underflowano a 0.0 (input
           estremamente negativi), la somma sarebbe 0 e la divisione produrrebbe
           NaN. In quel caso la funzione restituisce una distribuzione uniforme
-          1/n per ciascuna classe, evitando la propagazione di NaN nel calcolo
+          1/n per ciascuna classe (nessuna classe preferita), evitando la propagazione di NaN nel calcolo
           della fitness e nei grafici matplotlib.
     """
     e_x = np.exp(x - np.max(x))

@@ -54,7 +54,7 @@ MUTATION_RATE = 0.2
 TOURNAMENT_SIZE = 10
 EPOCHS =  250 #150
 LEARNING_RATE = 0.01
-LAMBDA_ = 0.15
+LAMBDA_ = 0.11
 
 EPOCHS_BASELINE = EPOCHS
 
@@ -188,9 +188,10 @@ if __name__ == "__main__":
     fig_height = max(8, 6.5 + max_hidden * 0.5)
 
     fig, axes = plt.subplot_mosaic([
-         ['accuracy', 'info'],
-         ['accuracy', 'info'],
-         ['fitness', 'fitness']],
+         ['accuracy', 'accuracy', 'info'],
+         ['accuracy', 'accuracy', 'info'],
+         ['fitness', 'fitness', 'info'],
+         ['fitness', 'fitness', 'info']],
          figsize=(10, fig_height), sharex=True)
 
     ax_fit  = axes['fitness']
