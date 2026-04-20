@@ -24,14 +24,18 @@ def number_params(input_size, individuo, output_size):
     params += output_size * prev + output_size
     return params
 
-def accuracy_base(individuo, n_feature, n_output, learning_rate, epochs, Y_train, X_train, Y_val, X_val, K):
+def accuracy_base(individuo, n_feature, n_output, learning_rate, epochs, Y_train, X_train, Y_val, X_val, K, seed=None):
+
+    rng_np = np.random.default_rng(seed)
+
+    rng = random.Random(seed)
 
     sum_accuracy = 0
     for _ in range(0, K):
-        n = neural_network(individuo, n_feature, n_output, learning_rate, softmax)
+        n = neural_network(individuo, n_feature, n_output, learning_rate, softmax, rng=rng_np)
         # ADDESTRAMENTO → training set
         for _ in range(0, epochs):
-            x = random.randint(0, len(Y_train) - 1)
+            x = rng.randint(0, len(Y_train) - 1)
             n.feedback(X_train[x], Y_train[x])
         # VALUTAZIONE → testing set
         correct = 0
@@ -48,7 +52,7 @@ def accuracy_base(individuo, n_feature, n_output, learning_rate, epochs, Y_train
 
 K = 5 # numero di addestramenti per individuo
 
-POPULATION_SIZE = 50
+POPULATION_SIZE = 80
 GENERATIONS = 30
 MUTATION_RATE = 0.2
 TOURNAMENT_SIZE = 10
@@ -132,7 +136,8 @@ if __name__ == "__main__":
                   x_train,
                   y_val,
                   x_val,
-                  K)
+                  K,
+                  seed=42)
     print(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
 
     # ESECUZIONE DEL Genetic Algorithm

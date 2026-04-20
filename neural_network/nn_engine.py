@@ -108,7 +108,8 @@ class neural_network:
 
 
         # delta dell'output
-        delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(valori_intermedi[-1])
+        # delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(valori_intermedi[-1])
+        delta_out = self.dCE_softmax(target, guess)
         deltas.append(delta_out)
 
 
@@ -140,27 +141,40 @@ class neural_network:
         self.output_layer.b -= self.lr * deltas[0]
 
 
-    def MSE(self, target, guess):
-        """
-        @brief Calcola la Mean Squared Error tra target e predizione.
+    # def MSE(self, target, guess):
+    #     """
+    #     @brief Calcola la Mean Squared Error tra target e predizione.
 
-        La formula usata è MSE = sum((target - guess)^2) / 2. Il divisore 2
-        semplifica la derivata (la costante si cancella).
+    #     La formula usata è MSE = sum((target - guess)^2) / 2. Il divisore 2
+    #     semplifica la derivata (la costante si cancella).
 
-        @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
-        @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
-        @return (float) Valore scalare della loss.
-        """
-        return np.sum((target - guess)**2) / 2
+    #     @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
+    #     @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
+    #     @return (float) Valore scalare della loss.
+    #     """
+    #     return np.sum((target - guess)**2) / 2
 
-    def dMSE(self, target, guess):
-        """
-        @brief Calcola la derivata della MSE rispetto all'output della rete.
+    # def dMSE(self, target, guess):
+    #     """
+    #     @brief Calcola la derivata della MSE rispetto all'output della rete.
 
-        @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
-        @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
-        @return (numpy.ndarray) Gradiente della loss rispetto a guess: (guess - target).
-        """
+    #     @param target (numpy.ndarray) Vettore target atteso, forma (size_output, 1).
+    #     @param guess (numpy.ndarray) Output predetto dalla rete, forma (size_output, 1).
+    #     @return (numpy.ndarray) Gradiente della loss rispetto a guess: (guess - target).
+    #     """
+    #     return guess - target
+
+    def cross_entropy(self, target, guess):
+        """      
+        @brief Cross-entropy loss per classificazione multi-classe.
+        @param target (numpy.ndarray) One-hot vector, forma (size_output, 1).     
+        @param guess  (numpy.ndarray) Output softmax della rete forma (siz e_output,1).
+        @return (float) Valore scalare della loss.                                
+        """ 
+        guess_clipped = np.clip(guess, 1e-12, 1.0)
+        return np.sum(target * np.log(guess_clipped))
+    
+    def dCE_softmax(self,target, guess):
         return guess - target
 
 

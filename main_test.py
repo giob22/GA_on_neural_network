@@ -16,7 +16,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 
 
-def draw_neural_network(ax, individuo, max_neurons_shown=6):
+def draw_neural_network(ax, individuo, max_neurons_shown=32):
     """
     Disegna la rete neurale come grafo a strati su un asse matplotlib.
     Si adatta automaticamente alle dimensioni dell'asse senza distorcere i cerchi.
@@ -306,11 +306,11 @@ if __name__ == "__main__":
    
    
     fig, axes = plt.subplot_mosaic(
-    [['fitness',      'fitness'],
-     ['accuracy',     'accuracy'],
-     ['architettura',         'rete']],
+    [['fitness',      'accuracy'],
+     ['fitness',     'architettura'],
+     ['rete',         'rete']],
     figsize=(10, 11),
-    gridspec_kw={'height_ratios': [1, 1, 0.8],'width_ratios': [1, 2]}
+    gridspec_kw={'height_ratios': [1, 1, 2],'width_ratios': [1, 1]}
     )
 
 

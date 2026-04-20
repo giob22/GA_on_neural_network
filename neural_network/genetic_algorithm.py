@@ -11,7 +11,7 @@ MAX_LAYER = 10
 
 class GeneticAlgorithm:
 
-    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val, minNeuroni=4, maxNeuroni=64, minLayer=1, maxLayer=10, seed=None):
+    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val, minNeuroni=MIN_NEURONI, maxNeuroni=MAX_NEURONI, minLayer=MIN_LAYER, maxLayer=MAX_LAYER, seed=None):
         """
         @brief Inizializza l'algoritmo genetico per la ricerca automatica dell'architettura.
 
@@ -41,14 +41,11 @@ class GeneticAlgorithm:
         @note I bounds minNeuroni/maxNeuroni/minLayer/maxLayer sovrascrivono le costanti di modulo
               MIN_NEURONI, MAX_NEURONI, MIN_LAYER, MAX_LAYER tramite global.
         """
-        global MIN_LAYER
-        global MIN_NEURONI
-        global MAX_LAYER
-        global MAX_NEURONI
-        MIN_LAYER = minLayer
-        MIN_NEURONI = minNeuroni
-        MAX_LAYER = maxLayer
-        MAX_NEURONI = maxNeuroni
+        
+        self.minLayer = minLayer 
+        self.minNeuroni = minNeuroni 
+        self.maxLayer = maxLayer
+        self.maxNeuroni = maxNeuroni 
 
         self.seed = seed
         self.rng = random.Random(seed)  # RNG isolato: non interferisce con il random globale
@@ -93,9 +90,9 @@ class GeneticAlgorithm:
                 una per ogni hidden layer.
         """
         cromosoma = []
-        n_hidden_layer = self.rng.randint(MIN_LAYER, MAX_LAYER)
+        n_hidden_layer = self.rng.randint(self.minLayer, self.maxLayer)
         for _ in range(0, n_hidden_layer):
-            cromosoma.append((self.rng.randint(MIN_NEURONI, MAX_NEURONI), self.rng.choice(self.hidden_functions)))
+            cromosoma.append((self.rng.randint(self.minNeuroni, self.maxNeuroni), self.rng.choice(self.hidden_functions)))
 
         return cromosoma
 
@@ -235,12 +232,12 @@ class GeneticAlgorithm:
         @note Un layer viene rimosso solo se l'individuo ha più di un layer.
         """
         individuo = [layer_ for layer_ in individuo]
-        for i in range(0, len(individuo)):
+        for i in range(len(individuo) - 1, -1, -1):
             if self.rng.random() < self.mutation_rate:
                 new_layer = ()
-                mut = self.rng.choices([0, 1, 2], [20, 20, 1])[0]
+                mut = self.rng.choices([0, 1, 2], [2, 2, 20])[0]
                 if mut == 0: # mutano il numero di neuroni
-                    new_layer = (self.rng.randint(MIN_NEURONI, MAX_NEURONI), individuo[i][1])
+                    new_layer = (self.rng.randint(self.minNeuroni, self.maxNeuroni), individuo[i][1])
                     individuo[i] = new_layer
                 elif mut == 1: # muta la funzione di attivazione
                     new_layer = (individuo[i][0], self.rng.choice(self.hidden_functions))
@@ -249,13 +246,11 @@ class GeneticAlgorithm:
 
                     if self.rng.randint(0, 1) == 0 and len(individuo) > 1:
                         pos = self.rng.randint(0, len(individuo) - 1)
-
                         del individuo[pos]
-                        break # necessario perché dopo l'elimiazione gli indici non sono più validi
                     else:
 
                         pos = self.rng.randint(0, len(individuo))
-                        individuo.insert(pos, (self.rng.randint(MIN_NEURONI, MAX_NEURONI), self.rng.choice(self.hidden_functions)))
+                        individuo.insert(pos, (self.rng.randint(self.minNeuroni, self.maxNeuroni), self.rng.choice(self.hidden_functions)))
         return individuo
 
 
