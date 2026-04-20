@@ -1,4 +1,5 @@
-from neural_network import *
+from neural_network import genetic_algorithm, neural_network
+from neural_network.nn_layer import softmax, leaky_relu, relu, linear
 import numpy as np
 import random
 import matplotlib.pyplot as plt
@@ -8,14 +9,33 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 def one_hot(y, n_classes=3):
+    """
+    @brief Converte un vettore di etichette intere in matrice one-hot.
+
+    @param y (array-like) Vettore di etichette intere in [0, n_classes).
+    @param n_classes (int) Numero di classi. Default: 3.
+    @return (numpy.ndarray) Matrice di forma (len(y), n_classes) con un solo 1 per riga.
+    """
     Y = np.zeros((len(y), n_classes))
     for i, label in enumerate(y):
         Y[i][label] = 1
     return Y
 
 def number_params(input_size, individuo, output_size):
+    """
+    @brief Calcola il numero totale di parametri (pesi + bias) di un'architettura.
+
+    @param input_size (int) Numero di feature in input.
+    @param individuo (list[tuple[int, any]]) Cromosoma: lista di (n_neuroni, funzione) per ogni hidden layer.
+    @param output_size (int) Numero di neuroni nel layer di output.
+    @return (int) Totale pesi + bias di tutta la rete.
+    """
     params = 0
     prev = input_size
     for neuroni, _ in individuo:
@@ -25,6 +45,25 @@ def number_params(input_size, individuo, output_size):
     return params
 
 def accuracy_base(individuo, n_feature, n_output, learning_rate, epochs, Y_train, X_train, Y_val, X_val, K, seed=None):
+    """
+    @brief Valuta l'accuracy media di un'architettura su K addestramenti indipendenti.
+
+    Per ogni run costruisce una rete con pesi casuali, la addestra su X_train per
+    il numero di epoche indicato e misura l'accuracy su X_val.
+
+    @param individuo (list[tuple[int, callable]]) Cromosoma dell'architettura da valutare.
+    @param n_feature (int) Numero di feature in input.
+    @param n_output (int) Numero di classi in output.
+    @param learning_rate (float) Learning rate della backpropagation.
+    @param epochs (int) Numero di epoche di addestramento per ogni run.
+    @param Y_train (numpy.ndarray) Label one-hot del training set.
+    @param X_train (numpy.ndarray) Feature del training set.
+    @param Y_val (numpy.ndarray) Label one-hot del validation set.
+    @param X_val (numpy.ndarray) Feature del validation set.
+    @param K (int) Numero di run indipendenti; la media riduce la varianza da inizializzazione casuale.
+    @param seed (int | None) Seed per numpy e random, garantisce riproducibilità. Default: None.
+    @return (float) Accuracy media su K run, in [0, 1].
+    """
 
     rng_np = np.random.default_rng(seed)
 
@@ -66,7 +105,7 @@ EPOCHS_BASELINE = EPOCHS
 if __name__ == "__main__":
 
     # load del dataset
-    dataset = load_iris()
+    dataset = load_digits()
     
     x = dataset.data
     y = dataset.target
@@ -138,11 +177,11 @@ if __name__ == "__main__":
                   x_val,
                   K,
                   seed=42)
-    print(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
+    logger.info(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
 
     # ESECUZIONE DEL Genetic Algorithm
 
-    ga = GeneticAlgorithm(population_size=POPULATION_SIZE,
+    ga = genetic_algorithm.GeneticAlgorithm(population_size=POPULATION_SIZE,
                           generations=GENERATIONS,
                           mutation_rate=MUTATION_RATE,
                           tournament_size=TOURNAMENT_SIZE,
@@ -161,18 +200,18 @@ if __name__ == "__main__":
     (best_individuo, best_fitness, best_accuracy, storia_best_fitness, storia_best_accuracy, storia_mean_accuracy) = ga.run()
     
     stop_time = time.perf_counter()
-    print(f"tempo di esecuzione: {stop_time - start_time}")
+    logger.info(f"tempo di esecuzione: {stop_time - start_time}")
     
     
     best_individuo = [(neuroni, funzione.__name__) for neuroni, funzione in best_individuo]
     best_fitness = round(best_fitness * 100,2)
     best_accuracy = round(best_accuracy * 100,2)
 
-    print(f"Miglior architettura trovata:\n{best_individuo}")
-    print(f"Fitness:{best_fitness}")
-    print(f"Accuracy:{best_accuracy}%")
-    print(f"Numero di layer={len(best_individuo)}")
-    print(f"#parametri={number_params(input_size,best_individuo, n_classi)}")
+    logger.info(f"Miglior architettura trovata:\n{best_individuo}")
+    logger.info(f"Fitness:{best_fitness}")
+    logger.info(f"Accuracy:{best_accuracy}%")
+    logger.info(f"Numero di layer={len(best_individuo)}")
+    logger.info(f"#parametri={number_params(input_size,best_individuo, n_classi)}")
 
     # trovo nella storia in che generazione si posizione il best_individuo
     idx_best = np.argmax(storia_best_fitness)

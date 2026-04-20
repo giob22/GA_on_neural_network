@@ -1,4 +1,5 @@
 import csv
+import logging
 import matplotlib.pyplot as plt
 from neural_network import *
 import numpy as np
@@ -6,6 +7,9 @@ import random
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 # ── preprocessing (identico a main.py) ──────────────────────────────
 def one_hot(y, n_classes=3):
@@ -36,7 +40,7 @@ if __name__ == "__main__":
         if np.argmax(rete_baseline.feedforward(x_val[i])['guess']) == np.argmax(y_val[i])
     )
     accuracy_baseline = correct / len(x_val)
-    print(f"Baseline accuracy: {round(accuracy_baseline * 100, 2)}%")
+    logger.info(f"Baseline accuracy: {round(accuracy_baseline * 100, 2)}%")
 
     # ── parametri fissi ───────────────────────────────────────────────────
     POPULATION_SIZE  = 20
@@ -54,9 +58,7 @@ if __name__ == "__main__":
     all_storie = []  # per i grafici comparativi
 
     for lr in lr_list:
-        print(f"\n{'='*50}")
-        print(f"TEST learning_rate = {lr}")
-        print(f"{'='*50}")
+        logger.info(f"\n{'='*50}\nTEST learning_rate = {lr}\n{'='*50}")
 
         ga = GeneticAlgorithm(
             population_size = POPULATION_SIZE,
@@ -100,15 +102,15 @@ if __name__ == "__main__":
             'storia_ma':  storia_ma
         })
 
-        print(f"Best accuracy: {round(best_acc * 100, 2)}%")
-        print(f"Architettura: {arch}")
+        logger.info(f"Best accuracy: {round(best_acc * 100, 2)}%")
+        logger.info(f"Architettura: {arch}")
 
     # ── salva CSV ─────────────────────────────────────────────────────────
     with open('tests/test_learning_rate.csv', 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=csv_rows[0].keys())
         writer.writeheader()
         writer.writerows(csv_rows)
-    print("\nCSV salvato: test_learning_rate.csv")
+    logger.info("CSV salvato: test_learning_rate.csv")
 
     # ── grafici comparativi ───────────────────────────────────────────────
     gen = range(1, GENERATIONS + 1)
@@ -149,4 +151,4 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig('tests/test_learning_rate.png', dpi=150)
     plt.show()
-    print("Grafico salvato: test_learning_rate.png")
+    logger.info("Grafico salvato: test_learning_rate.png")

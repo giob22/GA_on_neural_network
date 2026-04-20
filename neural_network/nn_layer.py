@@ -59,9 +59,9 @@ def d_linear(x):
     @brief Derivata della funzione lineare.
 
     @param x (numpy.ndarray) Valore pre-attivazione (non usato).
-    @return (int) Costante 1.
+    @return (numpy.ndarray)  array della stessa dimensione dell'ingresso riempito di 1.
     """
-    return 1
+    return np.ones_like(x)
 
 
 def sigmoid(x):
@@ -133,7 +133,7 @@ def d_softmax(x):
 
 
 ## Dizionario che mappa ogni funzione di attivazione alla sua derivata.
-function_hidden = {relu: drelu, linear: d_linear, sigmoid: d_sigmoid, leaky_relu: d_leaky_relu, softmax: d_softmax}
+hidden_functions = {relu: drelu, linear: d_linear, sigmoid: d_sigmoid, leaky_relu: d_leaky_relu, softmax: d_softmax}
 
 
 class layer:
@@ -144,17 +144,28 @@ class layer:
         @param row (int) Numero di neuroni del layer (righe della matrice pesi).
         @param col (int) Numero di neuroni del layer precedente (colonne della matrice pesi).
         @param activation_function (callable) Funzione di attivazione del layer;
-               deve essere una chiave presente in function_hidden.
+               deve essere una chiave presente in hidden_functions.
         @param rng (numpy.random.Generator | None) Generatore NumPy isolato per la
                riproducibilità. Se None usa np.random globale (comportamento legacy).
                Passare un Generator creato con numpy.random.default_rng(seed) garantisce
                che l'inizializzazione dei pesi sia deterministica e isolata dagli altri layer.
-        @note I pesi e il bias sono inizializzati con distribuzione uniforme in [-0.5, 0.5].
+        @note I pesi sono inizializzati con distribuzione normale: He (std=sqrt(2/col)) per
+              relu/leaky_relu, Xavier (std=sqrt(1/col)) per le altre funzioni. Il bias
+              è inizializzato con distribuzione uniforme in [-0.5, 0.5].
         """
         _rng = rng if rng is not None else np.random
-        self.weights = _rng.uniform(-0.5, 0.5, size=(row, col))
+
+        # TODO spiega perché si sta utilizzando un modo diverso per assegnare i valori ai pesi, ovvero il problema del dying ReLU e la saturazione della sigmoid
+        if activation_function in (relu, leaky_relu):
+            std = np.sqrt(2/col) #He: compensa ReLU che taglia metà attivazioni
+        else:
+            std = np.sqrt(1/col) # Xavier: per funzioni simmetriche attorno a 0
+
+        self.weights = _rng.normal(0,std,size=(row,col))
+
+        # self.weights = _rng.uniform(-0.5, 0.5, size=(row, col))
         self.func = activation_function
-        self.dfunc = function_hidden[self.func]
+        self.dfunc = hidden_functions[self.func]
         self.bias = _rng.uniform(-0.5, 0.5, size=(row, 1))
 
     @property

@@ -1,8 +1,11 @@
 import random
+import logging
 from .nn_layer import *
 from .nn_engine import neural_network
 
-from concurrent.futures import ProcessPoolExecutor 
+from concurrent.futures import ProcessPoolExecutor
+
+logger = logging.getLogger(__name__) 
 
 MIN_NEURONI = 4
 MAX_NEURONI = 64
@@ -11,7 +14,7 @@ MAX_LAYER = 10
 
 class GeneticAlgorithm:
 
-    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val, minNeuroni=MIN_NEURONI, maxNeuroni=MAX_NEURONI, minLayer=MIN_LAYER, maxLayer=MAX_LAYER, seed=None):
+    def __init__(self, population_size, generations, mutation_rate, tournament_size, epochs, learning_rate, n_feature, n_output, K, lambda_, X_Train, Y_Train, X_val, Y_val, min_neuroni=MIN_NEURONI, max_neuroni=MAX_NEURONI, min_layer=MIN_LAYER, max_layer=MAX_LAYER, seed=None):
         """
         @brief Inizializza l'algoritmo genetico per la ricerca automatica dell'architettura.
 
@@ -29,23 +32,23 @@ class GeneticAlgorithm:
         @param Y_Train (numpy.ndarray) Label one-hot del training set, forma (n_campioni, n_output).
         @param X_val (numpy.ndarray) Feature del validation set.
         @param Y_val (numpy.ndarray) Label one-hot del validation set.
-        @param minNeuroni (int) Numero minimo di neuroni per hidden layer generabile. Default: 4.
-        @param maxNeuroni (int) Numero massimo di neuroni per hidden layer generabile. Default: 64.
-        @param minLayer (int) Numero minimo di hidden layer per cromosoma generabile. Default: 1.
-        @param maxLayer (int) Numero massimo di hidden layer per cromosoma generabile. Default: 10.
+        @param min_neuroni (int) Numero minimo di neuroni per hidden layer generabile. Default: 4.
+        @param max_neuroni (int) Numero massimo di neuroni per hidden layer generabile. Default: 64.
+        @param min_layer (int) Numero minimo di hidden layer per cromosoma generabile. Default: 1.
+        @param max_layer (int) Numero massimo di hidden layer per cromosoma generabile. Default: 10.
         @param seed (int | None) Seed per la riproducibilità. Controlla tutta la casualità strutturale
                del GA (generazione popolazione, selezione, crossover, mutazione) tramite self.rng.
                I worker di _fitness ricevono seed derivati (seed + gen*pop_size + idx).
                Se None, il comportamento è non deterministico. Default: None.
         @note I dati devono essere già normalizzati e splittati prima di essere passati.
-        @note I bounds minNeuroni/maxNeuroni/minLayer/maxLayer sovrascrivono le costanti di modulo
+        @note I bounds min_neuroni/max_neuroni/min_layer/max_layer sovrascrivono le costanti di modulo
               MIN_NEURONI, MAX_NEURONI, MIN_LAYER, MAX_LAYER tramite global.
         """
         
-        self.minLayer = minLayer 
-        self.minNeuroni = minNeuroni 
-        self.maxLayer = maxLayer
-        self.maxNeuroni = maxNeuroni 
+        self.min_layer = min_layer 
+        self.min_neuroni = min_neuroni 
+        self.max_layer = max_layer
+        self.max_neuroni = max_neuroni 
 
         self.seed = seed
         self.rng = random.Random(seed)  # RNG isolato: non interferisce con il random globale
@@ -90,9 +93,9 @@ class GeneticAlgorithm:
                 una per ogni hidden layer.
         """
         cromosoma = []
-        n_hidden_layer = self.rng.randint(self.minLayer, self.maxLayer)
+        n_hidden_layer = self.rng.randint(self.min_layer, self.max_layer)
         for _ in range(0, n_hidden_layer):
-            cromosoma.append((self.rng.randint(self.minNeuroni, self.maxNeuroni), self.rng.choice(self.hidden_functions)))
+            cromosoma.append((self.rng.randint(self.min_neuroni, self.max_neuroni), self.rng.choice(self.hidden_functions)))
 
         return cromosoma
 
@@ -237,7 +240,7 @@ class GeneticAlgorithm:
                 new_layer = ()
                 mut = self.rng.choices([0, 1, 2], [2, 2, 20])[0]
                 if mut == 0: # mutano il numero di neuroni
-                    new_layer = (self.rng.randint(self.minNeuroni, self.maxNeuroni), individuo[i][1])
+                    new_layer = (self.rng.randint(self.min_neuroni, self.max_neuroni), individuo[i][1])
                     individuo[i] = new_layer
                 elif mut == 1: # muta la funzione di attivazione
                     new_layer = (individuo[i][0], self.rng.choice(self.hidden_functions))
@@ -250,7 +253,7 @@ class GeneticAlgorithm:
                     else:
 
                         pos = self.rng.randint(0, len(individuo))
-                        individuo.insert(pos, (self.rng.randint(self.minNeuroni, self.maxNeuroni), self.rng.choice(self.hidden_functions)))
+                        individuo.insert(pos, (self.rng.randint(self.min_neuroni, self.max_neuroni), self.rng.choice(self.hidden_functions)))
         return individuo
 
 
@@ -324,7 +327,7 @@ class GeneticAlgorithm:
             storia_mean_accuracy.append(np.nanmean(accuracy_scores))
 
             # stampa dell'avanzamento
-            print(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5} | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}% ")
+            logger.info(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5} | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}%")
 
 
 

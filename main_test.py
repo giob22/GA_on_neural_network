@@ -1,10 +1,14 @@
 from neural_network import *
 import numpy as np
 import random
+import logging
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris, load_digits, load_wine, load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 
 
@@ -285,7 +289,7 @@ if __name__ == "__main__":
         if np.argmax(guess) == np.argmax(y_val[i]):
             correct += 1
     accuracy_baseline = correct/len(x_val)
-    print(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
+    logger.info(f"accuracy della rete baseline: {round((accuracy_baseline) * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
 
     # ESECUZIONE DEL Genetic Algorithm
 
@@ -324,11 +328,11 @@ if __name__ == "__main__":
 
 
     best_individuo = [(neuroni, funzione.__name__) for neuroni, funzione in best_individuo]
-    print(f"Miglior architettura trovata:\n{best_individuo}")
-    print(f"Fitness:{round(best_fitness * 100,2)}")
-    print(f"Accuracy:{round(best_accuracy * 100,2)}%")
-    print(f"Numero di layer={len(best_individuo)}")
-    print(f"#parametri={number_params(input_size,best_individuo, n_classi)}")
+    logger.info(f"Miglior architettura trovata:\n{best_individuo}")
+    logger.info(f"Fitness:{round(best_fitness * 100,2)}")
+    logger.info(f"Accuracy:{round(best_accuracy * 100,2)}%")
+    logger.info(f"Numero di layer={len(best_individuo)}")
+    logger.info(f"#parametri={number_params(input_size,best_individuo, n_classi)}")
 
     # trovo nella storia in che generazione si posizione il best_individuo
     idx_best = np.argmax(storia_best_fitness)

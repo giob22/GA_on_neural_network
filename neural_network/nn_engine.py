@@ -49,8 +49,8 @@ class neural_network:
                 - 'intermediate_vals' (list[numpy.ndarray]): valori pre-attivazione di ogni layer.
         @note Lancia ValueError se la dimensione di x non corrisponde a size_input.
         """
-        valori_input = []
-        valori_intermedi = []
+        layer_inputs = []
+        pre_activations = []
 
         x = np.array(x).reshape(-1,1)
 
@@ -60,22 +60,22 @@ class neural_network:
         t = x
 
         for elem in self.hiddens_layers:
-            valori_input.append(t)
+            layer_inputs.append(t)
             t = elem.W @ t + elem.b
-            valori_intermedi.append(t)
+            pre_activations.append(t)
 
             t = elem.activation_function(t)
 
-        valori_input.append(t)
+        layer_inputs.append(t)
 
 
 
         t = self.output_layer.W @ t + self.output_layer.b
 
-        valori_intermedi.append(t)
+        pre_activations.append(t)
         res = self.output_layer.func(t)
 
-        return {'guess': res, 'input_vals': valori_input, 'intermediate_vals': valori_intermedi}
+        return {'guess': res, 'input_vals': layer_inputs, 'intermediate_vals': pre_activations}
 
     def feedback(self, inputs, target):
         """
@@ -97,18 +97,20 @@ class neural_network:
         @param inputs (array-like) Vettore di input di lunghezza size_input.
         @param target (array-like) Vettore target atteso di lunghezza size_output.
         @note Modifica direttamente i pesi e i bias di tutti i layer (side effect).
-        @note Utilizza la MSE come funzione di loss.
+        @note Utilizza cross-entropy come loss, combinata con softmax sull'output layer.
+              Il delta di output è calcolato con dCE_softmax (gradiente combinato CE+softmax),
+              quindi dfunc del layer di output non viene chiamata.
         """
         target = np.array(target).reshape(-1,1)
         res = self.feedforward(inputs)
         guess = res['guess']
-        valori_intermedi = res['intermediate_vals']
-        valori_input = res['input_vals']
+        pre_activations = res['intermediate_vals']
+        layer_inputs = res['input_vals']
         deltas = []
 
 
         # delta dell'output
-        # delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(valori_intermedi[-1])
+        # delta_out = self.dMSE(target, guess) * self.output_layer.dfunc(pre_activations[-1])
         delta_out = self.dCE_softmax(target, guess)
         deltas.append(delta_out)
 
@@ -122,7 +124,7 @@ class neural_network:
 
 
         for i in range(len(self.hiddens_layers) - 1, -1, -1):
-            current_delta = (next_W.T @ current_delta) * self.hiddens_layers[i].dfunc(valori_intermedi[i])
+            current_delta = (next_W.T @ current_delta) * self.hiddens_layers[i].dfunc(pre_activations[i])
 
             deltas.append(current_delta)
 
@@ -134,10 +136,10 @@ class neural_network:
         # Per output layer:   deltas[0]
 
         for i in range(len(self.hiddens_layers)):
-            self.hiddens_layers[i].W -= self.lr * (deltas[-(i + 1)] @ valori_input[i].T)
+            self.hiddens_layers[i].W -= self.lr * (deltas[-(i + 1)] @ layer_inputs[i].T)
             self.hiddens_layers[i].b -= self.lr * deltas[-(i + 1)]
 
-        self.output_layer.W -= self.lr * (deltas[0] @ valori_input[-1].T)
+        self.output_layer.W -= self.lr * (deltas[0] @ layer_inputs[-1].T)
         self.output_layer.b -= self.lr * deltas[0]
 
 
@@ -165,16 +167,39 @@ class neural_network:
     #     return guess - target
 
     def cross_entropy(self, target, guess):
-        """      
-        @brief Cross-entropy loss per classificazione multi-classe.
-        @param target (numpy.ndarray) One-hot vector, forma (size_output, 1).     
-        @param guess  (numpy.ndarray) Output softmax della rete forma (siz e_output,1).
-        @return (float) Valore scalare della loss.                                
-        """ 
+        """
+        @brief Calcola la cross-entropy loss per classificazione multi-classe.
+
+        Formula: CE = -sum(target * log(guess)), dove guess è l'output softmax.
+        Il segno negativo è assorbito dal fatto che target è one-hot e si
+        considera il log-likelihood della classe corretta.
+
+        @param target (numpy.ndarray) Vettore one-hot del target, forma (size_output, 1).
+        @param guess  (numpy.ndarray) Output softmax della rete, forma (size_output, 1).
+                      Valori attesi in (0, 1] con somma 1.
+        @return (float) Valore scalare della loss (negativo: più vicino a 0 = meglio).
+        @note guess viene clippato in [1e-12, 1.0] per evitare log(0) → -inf.
+        """
         guess_clipped = np.clip(guess, 1e-12, 1.0)
         return np.sum(target * np.log(guess_clipped))
     
-    def dCE_softmax(self,target, guess):
+    def dCE_softmax(self, target, guess):
+        """
+        @brief Gradiente combinato cross-entropy + softmax rispetto ai logit di input.
+
+        Quando l'ultimo layer usa softmax come attivazione e la loss è cross-entropy,
+        il gradiente si semplifica algebricamente a (guess - target), evitando
+        il calcolo esplicito della jacobiana della softmax.
+
+        @param target (numpy.ndarray) Vettore one-hot del target, forma (size_output, 1).
+        @param guess  (numpy.ndarray) Output softmax della rete, forma (size_output, 1).
+        @return (numpy.ndarray) Delta dell'output layer, forma (size_output, 1).
+                Il risultato è ∂Loss/∂z, dove z sono i **logit** — i valori pre-attivazione
+                dell'output layer (z = W·x + b, prima di softmax). Nel codice corrispondono
+                a `pre_activations[-1]` restituito da feedforward.
+        @note Valido solo se l'output layer usa softmax. Non chiamare dfunc del
+              layer di output dopo questo metodo: il gradiente è già completo.
+        """
         return guess - target
 
 

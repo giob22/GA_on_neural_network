@@ -9,6 +9,8 @@ __pycache__/
 *.so
 
 review.*
+prove.py
+feature.md
 
 # Distribution / packaging
 .Python
