@@ -16,72 +16,94 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \babel@aux{italian}{}
-\babel@aux{italian}{}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduzione}{4}{section.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}NAS}{4}{subsection.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Originalità e Rilevanza Pratica}{5}{subsection.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Background Teorico}{6}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Reti Neurali Artificiali}{6}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Struttura di un Neurone e dei Layer}{6}{subsubsection.2.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}Funzioni di Attivazione}{6}{subsubsection.2.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Backpropagation}{8}{subsubsection.2.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Algoritmi Genetici}{9}{subsection.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Concetti Fondamentali}{9}{subsubsection.2.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Il Ciclo Evolutivo}{9}{subsubsection.2.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.3}Selezione Tramite Torneo}{10}{subsubsection.2.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Neural Architecture Search}{10}{subsection.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Implementazione}{12}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Struttura del Progetto}{12}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Rete Neurale (\texttt  {nn\_engine.py})}{12}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Modifica al Costruttore}{12}{subsubsection.3.2.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Nuovo costruttore della rete neurale}}{12}{lstlisting.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Validazione dell'input in feedforward}}{13}{lstlisting.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Funzioni di Attivazione per Layer}{13}{subsubsection.3.2.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Separazione tra funzioni per hidden e output layer}}{13}{lstlisting.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Algoritmo Genetico (\texttt  {genetic\_algorithm.py})}{13}{subsection.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Rappresentazione del Cromosoma}{13}{subsubsection.3.3.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Esempi di cromosomi}}{13}{lstlisting.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Funzione di Fitness con Penalità di Complessità}{14}{subsubsection.3.3.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Funzione di fitness}}{14}{lstlisting.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Crossover}{15}{subsubsection.3.3.3}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces Crossover a doppio punto di taglio}}{15}{lstlisting.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.4}Mutazione}{15}{subsubsection.3.3.4}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}{\ignorespaces Mutazione con tre tipi di modifica}}{15}{lstlisting.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.5}Elitismo nel metodo \texttt  {run()}}{16}{subsubsection.3.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Preprocessing dei Dati}{16}{subsection.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Split Train/Validation}{16}{subsubsection.3.4.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}{\ignorespaces Split 80/20 con seed fisso}}{16}{lstlisting.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Normalizzazione}{17}{subsubsection.3.4.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {9}{\ignorespaces StandardScaler applicato correttamente}}{17}{lstlisting.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}One-Hot Encoding}{17}{subsubsection.3.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Concetti Trasversali Importanti}{18}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Overfitting}{18}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Classificazione vs Regressione}{18}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Generalizzabilità dei Risultati}{19}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Esperimenti e Risultati}{20}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Test 1 — Mutation Rate}{20}{subsection.5.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Evoluzione della fitness e accuracy al variare del mutation rate.\relax }}{21}{figure.caption.2}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:mutation_rate}{{1}{21}{Evoluzione della fitness e accuracy al variare del mutation rate.\relax }{figure.caption.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Test 2 — Lambda (Penalità di Complessità)}{21}{subsection.5.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Evoluzione della fitness e accuracy al variare di lambda.\relax }}{22}{figure.caption.3}\protected@file@percent }
-\newlabel{fig:lambda}{{2}{22}{Evoluzione della fitness e accuracy al variare di lambda.\relax }{figure.caption.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Evoluzione della Penalità: da Lineare a Logaritmica}{22}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Motivazione del Cambiamento}{22}{subsubsection.5.3.1}\protected@file@percent }
-\newlabel{eq:fitness_lin}{{12}{22}{Motivazione del Cambiamento}{equation.5.12}{}}
-\newlabel{eq:fitness_log}{{13}{23}{Motivazione del Cambiamento}{equation.5.13}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}Test 2b — Sensibilità di $\lambda $ con Penalità Logaritmica}{23}{subsubsection.5.3.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Evoluzione di fitness e accuracy al variare di $\lambda $ con penalità $\log _{10}$.\relax }}{24}{figure.caption.4}\protected@file@percent }
-\newlabel{fig:lambda_log}{{3}{24}{Evoluzione di fitness e accuracy al variare di $\lambda $ con penalità $\log _{10}$.\relax }{figure.caption.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Test 3 — Numero di Epoche}{25}{subsection.5.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Evoluzione della fitness e accuracy al variare del numero di epoche.\relax }}{26}{figure.caption.5}\protected@file@percent }
-\newlabel{fig:epochs}{{4}{26}{Evoluzione della fitness e accuracy al variare del numero di epoche.\relax }{figure.caption.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Test 4 — Learning Rate}{26}{subsection.5.5}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Evoluzione della fitness e accuracy al variare del learning rate.\relax }}{27}{figure.caption.6}\protected@file@percent }
-\newlabel{fig:lr}{{5}{27}{Evoluzione della fitness e accuracy al variare del learning rate.\relax }{figure.caption.6}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Discussione e Conclusioni}{28}{section.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Analisi Complessiva}{28}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Limiti del Progetto}{28}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Sviluppi Futuri}{28}{subsection.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Glossario dei Termini Chiave}{30}{appendix.Alph1}\protected@file@percent }
-\gdef \@abspage@last{31}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}L'idea del progetto in 60 secondi}{4}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Cos'è il Neural Architecture Search (NAS)}{4}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Originalità e rilevanza}{4}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Background di Machine Learning}{6}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Apprendimento supervisionato}{6}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Train, Validation e Test set}{6}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Holdout vs k-fold cross validation}{6}{subsubsection.2.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Stratificazione}{7}{subsubsection.2.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Classificazione vs Regressione}{7}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Iperparametri vs parametri}{7}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Overfitting e generalizzazione}{7}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Reti Neurali Artificiali}{9}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Dal neurone biologico al neurone artificiale}{9}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Topologia: input, hidden, output}{9}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Funzioni di attivazione}{9}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Forward step}{10}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Loss functions}{10}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Backward step e Gradient Descent}{11}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.6.1}L'intuizione}{11}{subsubsection.3.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.6.2}Backpropagation: l'idea}{11}{subsubsection.3.6.2}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Backpropagation (schema concettuale)}}{12}{algorithm.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.6.3}SGD vs batch vs mini-batch}{12}{subsubsection.3.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}Inizializzazione dei pesi}{12}{subsection.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Algoritmi Genetici}{14}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}La metafora biologica}{14}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Componenti fondamentali}{14}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Il ciclo evolutivo}{14}{subsection.4.3}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Algoritmo Genetico (schema generale)}}{15}{algorithm.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Selezione: torneo}{15}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Crossover}{16}{subsection.4.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Mutazione}{16}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.6.1}I tre tipi di mutazione del progetto}{16}{subsubsection.4.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Elitismo}{16}{subsection.4.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}GA come variante della ricerca locale}{17}{subsection.4.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Implementazione del progetto}{18}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Architettura del sistema}{18}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Rappresentazione del cromosoma}{18}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Funzione di fitness}{19}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.1}Perché penalizzare la complessità}{19}{subsubsection.5.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.2}Perché logaritmica e non lineare}{19}{subsubsection.5.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.3.3}Perché K valutazioni}{20}{subsubsection.5.3.3}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces Valutazione della fitness di un individuo}}{20}{algorithm.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Operatori genetici (pseudocodice)}{21}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.1}Selezione a torneo}{21}{subsubsection.5.4.1}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces \texttt  {selezione\_torneo}(popolazione, fitness, $k$)}}{21}{algorithm.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.2}Crossover a doppio punto di taglio}{21}{subsubsection.5.4.2}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces \texttt  {crossover}(genitore$_1$, genitore$_2$)}}{21}{algorithm.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.4.3}Mutazione}{21}{subsubsection.5.4.3}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {6}{\ignorespaces \texttt  {mutazione}(individuo, $p_m$)}}{21}{algorithm.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Il ciclo principale (run)}{22}{subsection.5.5}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {7}{\ignorespaces \texttt  {GeneticAlgorithm.run()}}}{22}{algorithm.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Preprocessing del dataset}{22}{subsection.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.1}Split train / validation / test}{22}{subsubsection.5.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.2}Normalizzazione (StandardScaler)}{22}{subsubsection.5.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.6.3}One-hot encoding}{23}{subsubsection.5.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}La baseline di confronto}{23}{subsection.5.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Concetti chiave trasversali}{24}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Overfitting nel contesto del progetto}{24}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Data leakage}{24}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Esplorazione vs sfruttamento}{25}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Generalizzabilità: metodo vs risultato}{25}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Ottimizzazione annidata: due livelli}{25}{subsection.6.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Esperimenti e Risultati}{27}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Metodologia: analisi di sensibilità}{27}{subsection.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.1}Dataset principale: \texttt  {load\_digits}}{27}{subsubsection.7.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {7.1.2}Configurazione di base}{27}{subsubsection.7.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Test 1 — Numero di epoche}{28}{subsection.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Test 2 — Numero di valutazioni $K$}{28}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Test 3 — Learning rate}{28}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Test 4 — Penalità di complessità $\lambda $}{29}{subsection.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Test 5 — Mutation rate}{30}{subsection.7.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.7}Test 6 — Dimensione della popolazione}{30}{subsection.7.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.8}Test 7 — Numero di generazioni}{31}{subsection.7.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.9}Test 8 — Generalizzabilità su dataset diversi}{31}{subsection.7.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.10}Test 9A — Bias ottimistico val vs test}{32}{subsection.7.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.11}Test 9B — Leakage da preprocessing}{32}{subsection.7.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.12}Riepilogo della configurazione ottimale}{33}{subsection.7.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussione e Conclusioni}{34}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Cosa il progetto dimostra}{34}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Limiti del progetto}{34}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Sviluppi futuri}{34}{subsection.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Domande tipo orale (con risposte ragionate)}{36}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Sul progetto in generale}{36}{subsection.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Su reti neurali}{36}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Su algoritmi genetici}{37}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Su NAS e fitness}{38}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}Su validazione e leakage}{39}{subsection.9.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.6}Domande di approfondimento}{39}{subsection.9.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Glossario dei termini chiave}{41}{appendix.A}\protected@file@percent }
+\gdef \@abspage@last{43}

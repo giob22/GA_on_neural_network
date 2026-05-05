@@ -1,1384 +1,2420 @@
-% ============================================================
-%  Progetto di Esame — Elementi di Intelligenza Artificiale
-%  Ottimizzazione Automatica dell'Architettura di Reti Neurali
-%  tramite Algoritmo Genetico
-% ============================================================
+% =============================================================
+%  Documento di studio per l'orale di Elementi di Intelligenza
+%  Artificiale (6 CFU) — Progetto: NAS via Algoritmo Genetico
+%  Autore: Giovanni
+% =============================================================
+\documentclass[11pt,a4paper]{article}
 
-\documentclass[12pt, a4paper]{article}
-
-% ── Encoding e lingua ────────────────────────────────────────
+% ─── Lingua, codifica, font ──────────────────────────────────
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[italian]{babel}
+\usepackage[main=italian,provide=*]{babel}
 
-% ── Layout pagina ────────────────────────────────────────────
-\usepackage[top=2.5cm, bottom=2.5cm, left=3cm, right=3cm]{geometry}
-
-% ── Tipografia ───────────────────────────────────────────────
-\usepackage{lmodern}
-\usepackage{microtype}
+% ─── Layout ──────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
 \usepackage{setspace}
-\onehalfspacing
+\setstretch{1.15}
+\usepackage{parskip}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{darkblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{midblue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
 
-% ── Matematica ───────────────────────────────────────────────
-\usepackage{amsmath}
-\usepackage{amssymb}
+% ─── Matematica ─────────────────────────────────────────────
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
 
-% ── Codice sorgente ──────────────────────────────────────────
-\usepackage{listings}
-\usepackage{xcolor}
-
-\definecolor{codebg}{RGB}{245,245,245}
-\definecolor{codeblue}{RGB}{46,64,87}
-\definecolor{codegray}{RGB}{120,120,120}
-\definecolor{codegreen}{RGB}{40,120,40}
-
-\lstset{
-    backgroundcolor=\color{codebg},
-    basicstyle=\ttfamily\small,
-    keywordstyle=\color{codeblue}\bfseries,
-    commentstyle=\color{codegreen}\itshape,
-    stringstyle=\color{orange!80!black},
-    language=Python,
-    breaklines=true,
-    frame=single,
-    rulecolor=\color{gray!40},
-    numbers=left,
-    numberstyle=\tiny\color{codegray},
-    numbersep=8pt,
-    tabsize=4,
-    showstringspaces=false,
-    captionpos=b,
-    xleftmargin=15pt
-}
-
-% ── Tabelle ──────────────────────────────────────────────────
+% ─── Tabelle ─────────────────────────────────────────────────
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{colortbl}
 \usepackage{multirow}
-\definecolor{headerblue}{RGB}{46,117,182}
-\definecolor{rowgray}{RGB}{242,242,242}
 
-% ── Immagini ─────────────────────────────────────────────────
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{caption}
-\usepackage{subcaption}
+% ─── Colori ──────────────────────────────────────────────────
+\usepackage[table,dvipsnames]{xcolor}
+\definecolor{darkblue}{HTML}{1B3A57}
+\definecolor{midblue}{HTML}{2A6F97}
+\definecolor{headerblue}{HTML}{2A6F97}
+\definecolor{rowgray}{HTML}{F2F4F7}
+\definecolor{accent}{HTML}{C1666B}
+\definecolor{boxbg}{HTML}{F7F9FC}
+\definecolor{conceptcolor}{HTML}{4F8C6C}
+\definecolor{questioncolor}{HTML}{8C4F4F}
+\definecolor{warncolor}{HTML}{B5651D}
 
-% ── Riquadri e note ──────────────────────────────────────────
-\usepackage{tcolorbox}
-\tcbuselibrary{skins}
+% ─── Pseudocodice ────────────────────────────────────────────
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\floatname{algorithm}{Algoritmo}
 
-% riquadro per le domande frequenti / concetti chiave
-\newtcolorbox{concetto}[1]{
-    colback=blue!5!white,
-    colframe=blue!50!black,
+% ─── Box decorativi ──────────────────────────────────────────
+\usepackage[most]{tcolorbox}
+
+% Box "concetto chiave"
+\newtcolorbox{concetto}[1][]{
+    enhanced,
+    breakable,
+    colback=conceptcolor!5,
+    colframe=conceptcolor!70,
     fonttitle=\bfseries,
-    title=#1,
-    rounded corners,
-    left=6pt, right=6pt, top=4pt, bottom=4pt
+    title={Concetto chiave: #1},
+    boxrule=0.6pt,
+    arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
 }
 
-% riquadro per le domande che potrebbero fare la prof
+% Box "domanda d'esame"
 \newtcolorbox{domanda}{
-    colback=orange!8!white,
-    colframe=orange!70!black,
+    enhanced,
+    breakable,
+    colback=questioncolor!5,
+    colframe=questioncolor!70,
     fonttitle=\bfseries,
-    title={Possibile domanda d'esame},
-    rounded corners,
-    left=6pt, right=6pt, top=4pt, bottom=4pt
+    title={Domanda tipo orale},
+    boxrule=0.6pt,
+    arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
 }
 
-% riquadro attenzione
+% Box "attenzione/insidia"
 \newtcolorbox{attenzione}{
-    colback=red!5!white,
-    colframe=red!60!black,
+    enhanced,
+    breakable,
+    colback=warncolor!5,
+    colframe=warncolor!70,
     fonttitle=\bfseries,
     title={Attenzione},
-    rounded corners,
-    left=6pt, right=6pt, top=4pt, bottom=4pt
+    boxrule=0.6pt,
+    arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
 }
 
-% ── Link ─────────────────────────────────────────────────────
-\usepackage{hyperref}
-\hypersetup{
+% Box "riassunto sezione"
+\newtcolorbox{riassunto}{
+    enhanced,
+    breakable,
+    colback=midblue!5,
+    colframe=midblue!50,
+    fonttitle=\bfseries,
+    title={Punti chiave da ricordare},
+    boxrule=0.6pt,
+    arc=2pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+}
+
+% ─── Hyperref (sempre per ultimo nei pacchetti) ──────────────
+\usepackage[
     colorlinks=true,
-    linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    pdftitle={Progetto IA — Neural Architecture Search tramite GA},
-}
+    linkcolor=darkblue,
+    citecolor=darkblue,
+    urlcolor=midblue,
+]{hyperref}
 
-% ── Intestazioni ─────────────────────────────────────────────
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{\small\textit{Neural Architecture Search tramite Algoritmo Genetico}}
-\fancyhead[R]{\small\thepage}
-\renewcommand{\headrulewidth}{0.4pt}
+% ─── Comandi personalizzati ──────────────────────────────────
+\newcommand{\fnt}{\texttt}     % font per nomi di funzioni/parametri
+\newcommand{\param}[1]{\texttt{#1}}
 
-% ── Titolo ───────────────────────────────────────────────────
-\title{
-    \vspace{-1cm}
-    {\Large Progetto di Esame — Elementi di Intelligenza Artificiale}\\[0.8cm]
-    {\huge \textbf{Ottimizzazione Automatica}}\\[0.3cm]
-    {\huge \textbf{dell'Architettura di Reti Neurali}}\\[0.3cm]
-    {\huge \textbf{tramite Algoritmo Genetico}}\\[1cm]
-    {\large Corso di Laurea Triennale in Ingegneria Informatica}
-}
-\author{}
-\date{\today}
-
-% ════════════════════════════════════════════════════════════
+% =============================================================
 \begin{document}
-% ════════════════════════════════════════════════════════════
 
-\maketitle
-\thispagestyle{empty}
-\vspace{1cm}
+% ─── FRONTESPIZIO ────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries\color{darkblue} Neural Architecture Search\\[0.3cm]
+    via Algoritmo Genetico\par}
+    \vspace{0.5cm}
+    {\large\itshape Documento di studio per l'orale\par}
+    \vspace{2cm}
+    {\Large Esame: Elementi di Intelligenza Artificiale (6 CFU)\par}
+    \vspace{0.3cm}
+    {\large Corso di laurea in Ingegneria Informatica\par}
+    \vfill
+    \begin{tcolorbox}[colback=boxbg, colframe=midblue!50, boxrule=0.5pt]
+    \textbf{Cosa fa il progetto in una frase}\\[0.2cm]
+    Un Algoritmo Genetico cerca automaticamente la migliore architettura di una rete
+    neurale (numero di layer, neuroni per layer, funzione di attivazione) per un dato
+    dataset, valutando ogni architettura tramite l'accuratezza ottenuta dopo training
+    con backpropagation, penalizzata per la complessità della rete.
+    \end{tcolorbox}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
 
-\begin{abstract}
-Questo documento descrive il progetto realizzato per l'esame di Elementi di
-Intelligenza Artificiale. Il sistema implementato combina una rete neurale
-costruita da zero in Python con un Algoritmo Genetico (GA) per automatizzare
-la ricerca della migliore architettura della rete sul dataset Iris.
-L'approccio rientra nel campo della Neural Architecture Search (NAS) e
-dimostra come due paradigmi di ottimizzazione --- il calcolo del gradiente e
-l'evoluzione biologica --- possano collaborare per risolvere un problema di
-classificazione multi-classe.
-\end{abstract}
-
-\newpage
+% ─── INDICE ──────────────────────────────────────────────────
 \tableofcontents
 \newpage
 
-% ════════════════════════════════════════════════════════════
+% =============================================================
 \section{Introduzione}
-% ════════════════════════════════════════════════════════════
+% =============================================================
 
-Il progetto affronta il problema della \textbf{Neural Architecture Search (NAS)},
-ovvero la ricerca automatica della migliore architettura di una rete neurale
-per un dato problema. Tradizionalmente, la progettazione di una rete neurale
-richiede che il ricercatore scelga manualmente il numero di layer, il numero
-di neuroni per layer e le funzioni di attivazione. Questa scelta è spesso
-guidata dall'esperienza e da tentativi ed errori, rendendo il processo lungo
-e dipendente dall'expertise del progettista.
+% ─────────────────────────────────────────────────────────────
+\subsection{L'idea del progetto in 60 secondi}
+% ─────────────────────────────────────────────────────────────
 
-L'obiettivo di questo progetto è automatizzare questa scelta utilizzando un
-\textbf{Algoritmo Genetico}, che esplora lo spazio delle possibili architetture e
-converge verso quelle che massimizzano l'accuratezza sul dataset Iris, tenendo
-conto anche della complessità computazionale della rete tramite una funzione
-di penalità.
+Quando si progetta una rete neurale, la scelta dell'architettura
+(\emph{quanti layer? quanti neuroni? quale funzione di attivazione?}) è
+quasi sempre fatta a mano, per tentativi ed errori, basandosi sull'esperienza
+del progettista. Il problema è che lo spazio delle architetture possibili è
+enorme: anche limitandosi a $1\dots 5$ layer, $4\dots 64$ neuroni per layer e
+$5$ funzioni di attivazione, si ottengono milioni di combinazioni. Provarle
+tutte è impensabile.
 
-\subsection{NAS}
+L'idea del progetto è semplice e potente: invece di cercare a mano,
+\textbf{lasciamo cercare a un Algoritmo Genetico (GA)}. Il GA imita
+l'evoluzione naturale: parte da una popolazione casuale di architetture,
+seleziona le migliori, le combina (crossover), introduce piccole variazioni
+(mutazione) e ripete il processo per molte generazioni. Quello che emerge
+alla fine è un'architettura quasi ottima, scoperta automaticamente.
 
-Il NAS è la tecnica per automatizzare la progettazione di reti neurali artificiali (ANN) ovvero un modello ampiamente utilizzato nel machine learning. Serve come detto per evitare la specifica manuale dell'architettura di una rete neurale la quale potrebbe non essere ottimale in termini di efficienza e complessità spaziale e temporale.
+I pesi della rete vengono comunque imparati con \textbf{backpropagation
+classica}: il GA decide solo la \emph{forma} della rete, la backpropagation
+ne riempie i \emph{valori}. Si tratta quindi di un'\textbf{ottimizzazione
+annidata}: due ottimizzatori operano contemporaneamente su scale diverse.
 
-NAS è strettamente correlato all'ottimizzazione degli iperparametri e al meta-apprendimento ed è un sottocampo dell'\textit{automated machine learning}.
+% ─────────────────────────────────────────────────────────────
+\subsection{Cos'è il Neural Architecture Search (NAS)}
+% ─────────────────────────────────────────────────────────────
 
+Il \textbf{Neural Architecture Search} è il sottocampo dell'\emph{automated
+machine learning} che studia come automatizzare la progettazione delle reti
+neurali. È strettamente collegato a:
 \begin{itemize}
-    \item Gli \textbf{iperparametri} sono parametri che possono essere impostati per definire qualsiasi parte configurabile del processo di apprendimento di un modello
-    
-    Sono ad esempio:
-
-    \begin{itemize}
-        \item learning rate
-        \item topologia della rete
-        \item dimensione della rete
-        \item etc
-    \end{itemize}
-    
-    \item Il \textbf{meta learning} o \textbf{meta-apprendimento}, definito anche "apprendere ad apprendere", è una sottocategoria del machine learning che addestra i modelli di intelligenza artificiale (AI) a comprendere e ad adattarsi autonomamente alle nuove attività. L'obiettivo principale del meta learning è quello di fornire alle macchine le competenze necessarie per apprendere ad apprendere.
-    
-    Ciò che abbiamo implementato è un caso di \textbf{ottimizzazione annidata}: il GA opera a un livello superiore ottimizzando la struttura, mentre la backpropagation opera a un livello inferiore ottimizzando i pesi. C'è quindi una gerarchia di due ottimizzatori che agiscono su scale e parametri diversi.
-
-    Questo si avvicina concettualmente al meta-apprendimento, ma se ne differenzia nella sostanza: il meta-apprendimento vero accumula esperienza su molti dataset per estrarre principi generali di apprendimento. Il nostro sistema è specifico per un singolo dataset, quindi è più corretto definirlo \textit{architecture search} che meta-learning.
-
-    Ad esempio, un vero sistema di meta-learning imparerebbe: "i problemi con feature continue e poche classi tendono a beneficiare di reti con ReLU e pochi layer" --- principio valido su dataset diversi, non solo su Iris.
+    \item \textbf{Ottimizzazione degli iperparametri} — gli iperparametri
+          sono tutti i parametri di un modello che \emph{non} vengono
+          appresi dai dati (learning rate, topologia, dimensione).
+          Tradizionalmente si scelgono con \emph{grid search}, \emph{random
+          search} o intuizione. NAS lo fa con tecniche evolutive o di
+          reinforcement learning.
+    \item \textbf{Meta-apprendimento} — ``imparare ad apprendere''. Un vero
+          sistema di meta-learning estrae \emph{principi generali} validi
+          su molti dataset (es. ``problemi con poche classi e feature
+          continue beneficiano di pochi layer ReLU''). Questo progetto è
+          più correttamente \emph{architecture search} per un singolo
+          dataset, non meta-learning in senso stretto.
 \end{itemize}
 
+NAS è un campo industrialmente rilevante: modelli come \emph{EfficientNet}
+(Google) sono nati da ricerca automatica dell'architettura, e NAS è la
+tecnica di riferimento quando bisogna deployare reti su hardware con
+risorse limitate (mobile, IoT).
 
-
-
-\subsection{Originalità e Rilevanza Pratica}
-
-Il progetto non è originale nel senso accademico del termine --- la NAS esiste
-dagli anni '90. Tuttavia il suo contributo è dimostrare la comprensione
-profonda di due paradigmi fondamentali dell'AI e la capacità di farli
-interagire. Il filone di ricerca esplorato è oggi uno dei più attivi nel campo:
-modelli come \textit{EfficientNet} di Google nascono da processi automatici di
-ricerca dell'architettura, e la NAS è ampiamente usata in contesti industriali
-dove si deve deployare una rete su hardware con risorse limitate.
+% ─────────────────────────────────────────────────────────────
+\subsection{Originalità e rilevanza}
+% ─────────────────────────────────────────────────────────────
 
 \begin{domanda}
 \textit{``Il tuo progetto è originale?''}\\
-No, nel senso accademico stretto. La NAS tramite GA è una tecnica nota. Ciò
-che è originale è la combinazione specifica: una rete neurale scritta da zero
-con backpropagation implementata manualmente, integrata con un GA che ne
-ottimizza l'architettura, con penalità di complessità e valutazione multipla
-(K=3) per ridurre la varianza. Tutti i componenti sono costruiti senza
-librerie di machine learning preconfezionate.
+No, nel senso accademico stretto: la NAS via GA è una tecnica nota dagli
+anni '90. Ciò che è originale è la \emph{combinazione specifica} qui
+realizzata:
+\begin{itemize}
+    \item rete neurale scritta da zero con backpropagation manuale (solo
+          \fnt{numpy}, niente TensorFlow/PyTorch);
+    \item GA scritto da zero che ottimizza l'architettura;
+    \item penalità di complessità logaritmica per evitare reti grandi inutili;
+    \item valutazione multipla ($K=3$) per ridurre la varianza dovuta
+          all'inizializzazione casuale dei pesi.
+\end{itemize}
+Tutti i componenti sono costruiti senza librerie di machine learning
+preconfezionate: questo dimostra la comprensione \emph{sotto il cofano}
+dei due paradigmi --- reti neurali e algoritmi evolutivi --- più che la
+capacità di usare API.
 \end{domanda}
+
+\begin{riassunto}
+\begin{itemize}
+    \item Il progetto risolve il problema della scelta manuale dell'architettura di una rete neurale.
+    \item Usa un GA per esplorare lo spazio delle architetture e la backpropagation per addestrare ogni rete candidata.
+    \item È un caso di \emph{ottimizzazione annidata}: due livelli di ottimizzazione, GA sopra e backpropagation sotto.
+    \item Il valore non è nell'originalità del metodo, ma nell'implementazione completa da zero di entrambi i paradigmi.
+\end{itemize}
+\end{riassunto}
 
 \newpage
 
-% ════════════════════════════════════════════════════════════
-\section{Background Teorico}
-% ════════════════════════════════════════════════════════════
+% =============================================================
+\section{Background di Machine Learning}
+% =============================================================
 
-% ────────────────────────────────────────────────────────────
-\subsection{Reti Neurali Artificiali}
-% ────────────────────────────────────────────────────────────
+Per inquadrare il progetto serve un nucleo solido di concetti di machine
+learning. Tutto ciò che segue verrà richiamato nel resto del documento.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Apprendimento supervisionato}
+% ─────────────────────────────────────────────────────────────
+
+Il \textbf{learning from labels} (apprendimento supervisionato) è il
+paradigma in cui ogni esempio del dataset è una coppia $(x, y)$ dove $x$ è
+un vettore di feature e $y$ è l'etichetta vera (la ``risposta corretta'').
+L'obiettivo del modello è imparare una funzione $f$ tale che $f(x) \approx y$
+per esempi mai visti prima.
+
+Dopo l'addestramento il modello deve \emph{generalizzare}: dare la risposta
+giusta su input nuovi. Il modo più semplice per misurarlo è separare i
+dati in due (o tre) sottoinsiemi disgiunti.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Train, Validation e Test set}
+% ─────────────────────────────────────────────────────────────
+
+\begin{itemize}
+    \item \textbf{Training set} (tipicamente 60--80\% dei dati). Su questo
+          il modello aggiusta i suoi parametri --- in una rete neurale, i
+          pesi vengono modificati dalla backpropagation.
+    \item \textbf{Validation set} (10--20\%). Non viene usato per
+          aggiornare i pesi, ma per scegliere fra modelli/configurazioni
+          (es. fra architetture diverse, learning rate diversi). Nel nostro
+          progetto è il set su cui il GA misura la fitness di ogni
+          individuo.
+    \item \textbf{Test set} (10--20\%). Toccato solo alla fine, per
+          stimare onestamente quanto il modello generalizza. Se lo si usa
+          durante la ricerca, si introduce \textbf{data leakage}: il
+          modello impara a fare bene su dati che dovrebbero essere segreti.
+\end{itemize}
+
+\begin{concetto}[separazione delle responsabilità tra i set]
+Train, validation e test svolgono tre ruoli \emph{diversi e non
+intercambiabili}:
+\begin{itemize}
+    \item Il train serve a \emph{imparare}.
+    \item Il validation serve a \emph{decidere}.
+    \item Il test serve a \emph{misurare} (una volta sola).
+\end{itemize}
+Confondere questi ruoli porta a stime gonfiate delle prestazioni.
+\end{concetto}
+
+\subsubsection{Holdout vs k-fold cross validation}
+
+\textbf{Holdout} è il metodo più semplice: si divide il dataset una volta
+sola in train/val/test. Veloce, ma il risultato dipende da come è stata
+fatta la divisione. Funziona bene quando il dataset è abbastanza grande
+da essere rappresentativo in ogni split.
+
+\textbf{K-fold cross validation} divide il dataset in $k$ pezzi
+(\emph{fold}) di uguale dimensione, addestra $k$ volte usando ogni volta
+un fold diverso come validation, e media i risultati. Stima più affidabile,
+ma costa $k$ volte di più. In questo progetto si usa l'holdout (sufficiente
+data la mole dei dataset utilizzati e il costo già alto del GA).
+
+\subsubsection{Stratificazione}
+
+Quando si fa lo split è importante mantenere le proporzioni delle classi
+in ciascun sottoinsieme. Senza stratificazione, su dataset piccoli può
+capitare che una classe finisca quasi tutta nel training set e quasi
+niente nel validation set --- il modello sembrerà funzionare benissimo
+ma in realtà non ha mai visto certi casi.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Classificazione vs Regressione}
+% ─────────────────────────────────────────────────────────────
+
+Nel supervisionato si distinguono due tipi di problemi a seconda di cosa
+è $y$:
+
+\begin{itemize}
+    \item \textbf{Classificazione} --- $y$ è una categoria discreta.
+          \emph{``Questo fiore è setosa, versicolor o virginica?''}.
+          La metrica naturale è l'\emph{accuracy} (\% di predizioni
+          corrette). Sull'output si usa tipicamente \fnt{softmax} per
+          ottenere una distribuzione di probabilità sulle classi.
+    \item \textbf{Regressione} --- $y$ è un valore continuo.
+          \emph{``Quanto costerà questa casa?''}. La metrica è MSE/RMSE
+          (errore quadratico medio). Sull'output si usa una funzione
+          lineare.
+\end{itemize}
+
+Il progetto è interamente di \emph{classificazione}: tutti e quattro i
+dataset di test (Iris, Wine, Breast Cancer, Digits) chiedono di assegnare
+ogni esempio a una categoria.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Iperparametri vs parametri}
+% ─────────────────────────────────────────────────────────────
+
+\begin{itemize}
+    \item I \textbf{parametri} di un modello sono i valori che il modello
+          \emph{impara dai dati} durante l'addestramento --- in una rete
+          neurale, i pesi e i bias.
+    \item Gli \textbf{iperparametri} sono le scelte di configurazione che
+          fissiamo \emph{prima} dell'addestramento: learning rate, numero
+          di epoche, dimensione della popolazione del GA, mutation rate,
+          $\lambda$ della penalità di complessità, ecc. Anche
+          l'\emph{architettura} stessa è un iperparametro --- ed è
+          esattamente quella che il GA cerca di scegliere automaticamente.
+\end{itemize}
+
+\begin{concetto}[la struttura tipica di un esperimento di ML]
+\begin{enumerate}
+    \item Si fissano gli iperparametri (a mano o tramite ricerca automatica).
+    \item Si addestra il modello sul training set facendo scendere il
+          gradiente della loss.
+    \item Si misurano le prestazioni sul validation set.
+    \item Si ripetono i passi 1--3 con configurazioni diverse e si sceglie
+          la migliore.
+    \item Si valuta una sola volta la configurazione vincente sul test set
+          per riportare il risultato finale.
+\end{enumerate}
+\end{concetto}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Overfitting e generalizzazione}
+% ─────────────────────────────────────────────────────────────
+
+Un modello in \textbf{overfitting} ha imparato a memoria i dati di
+training invece di estrarne le regole generali. Si manifesta con un
+\emph{accuracy alta sul training set ma bassa sul validation/test set}.
+Le cause più comuni:
+\begin{itemize}
+    \item modello troppo grande rispetto alla quantità di dati (troppi
+          parametri liberi);
+    \item training troppo lungo (la rete si specializza sui dettagli);
+    \item pattern accidentali nei dati di training (rumore).
+\end{itemize}
+
+L'\textbf{underfitting} è il problema opposto: il modello è troppo
+semplice per cogliere la struttura del problema --- accuracy bassa sia
+sul training che sul validation.
+
+\begin{concetto}[bias/variance trade-off]
+\textbf{Bias alto / variance bassa} = underfitting: il modello fa errori
+sistematici perché è troppo rigido.
+\textbf{Bias basso / variance alta} = overfitting: il modello cambia
+molto al variare dei dati e impara il rumore.
+La sweet spot è in mezzo, e spesso la si raggiunge regolarizzando il
+modello --- nel nostro caso con la penalità $\lambda$ sulla complessità,
+che incentiva architetture più snelle.
+\end{concetto}
+
+\begin{riassunto}
+\begin{itemize}
+    \item Il dataset si divide in train (impara), validation (decide), test (misura una sola volta).
+    \item I parametri si imparano dai dati; gli iperparametri si fissano prima del training.
+    \item L'architettura è un iperparametro --- ed è quello che il GA cerca automaticamente.
+    \item L'overfitting si combatte con dataset adeguati, regolarizzazione o vincoli sulla complessità.
+\end{itemize}
+\end{riassunto}
+
+\newpage
+
+% =============================================================
+\section{Reti Neurali Artificiali}
+% =============================================================
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Dal neurone biologico al neurone artificiale}
+% ─────────────────────────────────────────────────────────────
 
 Una rete neurale artificiale è un modello computazionale ispirato al
-funzionamento del cervello biologico. È composta da unità elementari
-chiamate \textbf{neuroni}, organizzati in layer successivi. Ogni neurone riceve
-input dal layer precedente, li combina linearmente tramite pesi e bias,
-e applica una funzione di attivazione non lineare per produrre il proprio output.
+funzionamento del cervello biologico. L'unità elementare è il
+\textbf{neurone}: riceve segnali in ingresso, li combina linearmente
+tramite \emph{pesi} (le ``sinapsi''), aggiunge un \emph{bias} e applica
+una funzione di attivazione non lineare per produrre l'uscita.
 
-\subsubsection{Struttura di un Neurone e dei Layer}
-
-Per un singolo neurone $i$ l'output è:
+Per un singolo neurone $i$:
 \begin{equation}
-    a_i = f\!\left(\mathbf{w}_i^T \mathbf{x} + b_i\right)
+    a_i = f(\bm{w}_i^\top \bm{x} + b_i)
 \end{equation}
-Raggruppando tutti i neuroni di un layer in forma matriciale:
+dove $\bm{w}_i$ è il vettore dei pesi, $\bm{x}$ è il vettore di input,
+$b_i$ il bias, $f$ la funzione di attivazione e $a_i$ l'uscita
+(\emph{attivazione}).
+
+Per un intero \textbf{layer} di neuroni si raggruppa in forma matriciale:
 \begin{equation}
-    \mathbf{a} = f\!\left(\mathbf{W}\mathbf{x} + \mathbf{b}\right)
+    \bm{a} = f(\bm{W}\bm{x} + \bm{b})
 \end{equation}
+con $\bm{W}$ matrice dei pesi (una riga per neurone) e $\bm{b}$ vettore dei
+bias.
 
-dove $\mathbf{W}$ è la matrice dei pesi, $\mathbf{x}$ il vettore di input,
-$\mathbf{b}$ il vettore dei bias e $f$ la funzione di attivazione.
+% ─────────────────────────────────────────────────────────────
+\subsection{Topologia: input, hidden, output}
+% ─────────────────────────────────────────────────────────────
 
-La struttura di una rete feed-forward è composta da tre tipologie di layer:
+Una rete \emph{feed-forward} (l'unica usata in questo progetto) è
+strutturata in tre tipi di layer in cascata:
 
 \begin{itemize}
-    \item \textbf{Layer di input} --- riceve le feature del dataset senza
-          applicare nessuna trasformazione.
-    \item \textbf{Hidden layer} --- trasforma la rappresentazione dei dati
-          applicando combinazioni lineari seguite da funzioni di attivazione
-          non lineari.
-    \item \textbf{Layer di output} --- produce la predizione finale con una
-          funzione di attivazione appropriata al tipo di problema.
+    \item \textbf{Layer di input} --- riceve le feature del dataset, una
+          per neurone. Non applica nessuna trasformazione, è un puro
+          punto di ingresso.
+    \item \textbf{Hidden layer(s)} --- uno o più layer intermedi. Ogni
+          layer trasforma la rappresentazione dei dati applicando
+          $\bm{W}\bm{x} + \bm{b}$ seguito da una funzione di attivazione
+          non lineare. È qui che la rete impara feature di livello
+          superiore.
+    \item \textbf{Layer di output} --- produce la predizione finale. La
+          funzione di attivazione dipende dal problema: \fnt{softmax}
+          per classificazione multiclasse, \fnt{sigmoid} per
+          classificazione binaria, lineare per regressione.
 \end{itemize}
 
-\subsubsection{Funzioni di Attivazione}
+\textbf{Perché servono le funzioni di attivazione non lineari?} Senza di
+esse una rete con $N$ layer è matematicamente equivalente a una rete con
+$1$ layer: la composizione di trasformazioni lineari è lineare. La non
+linearità è ciò che permette alla rete di rappresentare funzioni
+arbitrariamente complesse (\emph{universal approximation theorem}).
 
-Le funzioni di attivazione introducono la non linearità nella rete. Senza di
-esse, layer multipli sarebbero equivalenti a un singolo layer lineare ---
-indipendentemente dalla profondità, la rete potrebbe solo rappresentare
-trasformazioni lineari dell'input, incapace di apprendere pattern complessi.
+% ─────────────────────────────────────────────────────────────
+\subsection{Funzioni di attivazione}
+% ─────────────────────────────────────────────────────────────
 
-\vspace{0.3cm}
-\noindent\textbf{ReLU (Rectified Linear Unit)}
-\begin{equation}
-    f(x) = \max(0, x), \qquad f'(x) = \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}
-\end{equation}
-È la funzione più usata negli hidden layer perché computazionalmente
-efficiente e \emph{mitiga} il problema del vanishing gradient per
-valori positivi: la sua derivata è esattamente 1, quindi il contributo
-della funzione di attivazione al gradiente non si riduce attraversando
-il layer (a differenza di Sigmoid che satura). Ha però il problema
-dei \textit{neuroni morti}: se il valore di pre-attivazione
-$z = \mathbf{w}^T\mathbf{x} + b$ di un neurone è sistematicamente
-negativo, ReLU restituisce sempre 0 e la derivata è sempre 0.
-Il neurone smette di ricevere aggiornamenti e non impara più nulla.
-Leaky ReLU nasce proprio per risolvere questo limite.
+\begin{description}
+    \item[ReLU] (Rectified Linear Unit) ---
+        $f(x) = \max(0, x)$.
+        Veloce, derivata semplice ($1$ se $x>0$, $0$ altrimenti). Funziona
+        molto bene nei layer nascosti perché non satura per $x>0$.
+        Problema: \emph{dying ReLU} --- se un neurone riceve sempre input
+        negativi smette di apprendere (gradiente sempre $0$).
+    \item[Leaky ReLU] ---
+        $f(x) = x$ se $x>0$, altrimenti $\alpha x$ con $\alpha$ piccolo
+        (es. $0.01$). Risolve il dying ReLU mantenendo un piccolo
+        gradiente per $x<0$.
+    \item[Sigmoid] ---
+        $f(x) = \frac{1}{1+e^{-x}}$. Output in $(0,1)$.
+        Usata storicamente nei layer nascosti, oggi sconsigliata perché
+        \emph{satura} (per $|x|$ grande la derivata si avvicina a zero,
+        causando il \emph{vanishing gradient}). Resta utile come
+        attivazione di output per problemi binari.
+    \item[Linear] ---
+        $f(x) = x$. Identità. Usata in output per regressione, raramente
+        nei layer nascosti.
+    \item[Softmax] ---
+        $f(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$. Trasforma un vettore in
+        una distribuzione di probabilità (somma a $1$). È la scelta
+        standard per l'output di una classificazione multiclasse: il
+        neurone con probabilità più alta indica la classe predetta.
+\end{description}
 
-\vspace{0.3cm}
-\noindent\textbf{Leaky ReLU}
-\begin{equation}
-    f(x) = \max(0.01x,\; x), \qquad f'(x) = \begin{cases} 1 & x > 0 \\ 0.01 & x \leq 0 \end{cases}
-\end{equation}
-Variante di ReLU che risolve il problema dei neuroni morti permettendo un
-piccolo gradiente anche per valori negativi.
-
-\vspace{0.3cm}
-\noindent\textbf{Sigmoid}
-\begin{equation}
-    f(x) = \frac{1}{1+e^{-x}}, \qquad f'(x) = f(x)\bigl(1-f(x)\bigr)
-\end{equation}
-Comprime l'output nell'intervallo $(0,1)$. Soffre del problema del gradiente
-che svanisce per valori molto grandi o molto piccoli (\textit{vanishing gradient}).
-
-\vspace{0.3cm}
-\noindent\textbf{Softmax}
-\begin{equation}
-    f(x_i) = \frac{e^{x_i}}{\displaystyle\sum_j e^{x_j}}
-\end{equation}
-Trasforma un vettore di valori arbitrari in una distribuzione di probabilità
-(tutti i valori tra 0 e 1, somma = 1). È la funzione ideale per il layer di
-output in problemi di \textbf{classificazione multi-classe} come Iris.
-
-\begin{concetto}{Perché Softmax solo sull'output layer?}
-La Softmax è definita su un vettore e il suo output dipende da \emph{tutti}
-i valori del vettore contemporaneamente. Applicarla in un hidden layer
-creerebbe due problemi: (1) tutti i neuroni del layer dovrebbero sommare a 1,
-forzandoli a \emph{competere} tra loro invece di apprendere feature
-indipendenti; (2) se il layer avesse un solo neurone, l'operazione
-$e^{x}/e^{x} = 1$ darebbe costantemente 1, azzerando il gradiente e
-bloccando l'apprendimento. Negli hidden layer si usano funzioni
-elemento-per-elemento come ReLU e Sigmoid.
+\begin{concetto}[funzioni di attivazione e GA]
+Nel progetto le funzioni di attivazione disponibili sono ReLU, Leaky ReLU,
+Sigmoid, Linear e Softmax. Per i layer nascosti il GA può scegliere
+liberamente fra le prime quattro; sull'output la \fnt{softmax} è fissa
+(tutti i task sono di classificazione multiclasse). La possibilità di
+mescolare attivazioni diverse fra layer è una scelta progettuale: il GA
+può combinare ReLU al primo layer e Leaky ReLU al secondo, ad esempio.
 \end{concetto}
 
-\begin{domanda}
-\textit{``Perché usi l'approssimazione diagonale della derivata della Softmax?''}\\
-La derivata completa della Softmax è una matrice --- il Jacobiano --- perché
-ogni output dipende da tutti gli input. L'elemento $(i,j)$ del Jacobiano è:
+% ─────────────────────────────────────────────────────────────
+\subsection{Forward step}
+% ─────────────────────────────────────────────────────────────
+
+Il \textbf{forward step} (o \emph{forward pass}) propaga un input
+attraverso la rete per produrre la predizione. Per una rete con $L$
+hidden layer:
+
+\begin{equation}
+    \bm{a}^{(0)} = \bm{x}, \qquad
+    \bm{a}^{(\ell)} = f^{(\ell)}\!\left(\bm{W}^{(\ell)}\bm{a}^{(\ell-1)} + \bm{b}^{(\ell)}\right)
+    \quad \ell = 1, \ldots, L+1
+\end{equation}
+
+L'output finale $\hat{\bm{y}} = \bm{a}^{(L+1)}$ è la predizione della rete.
+Durante il training si confronta $\hat{\bm{y}}$ con l'etichetta vera $\bm{y}$
+e si calcola la \emph{loss} (errore).
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Loss functions}
+% ─────────────────────────────────────────────────────────────
+
+La \textbf{funzione di loss} misura quanto la predizione si discosta dalla
+verità. La scelta dipende dal problema:
+
+\begin{itemize}
+    \item \textbf{Mean Squared Error (MSE)} --- per regressione:
+        \[ \mathcal{L} = \frac{1}{n}\sum_i (\hat{y}_i - y_i)^2 \]
+    \item \textbf{Binary Cross-Entropy} --- per classificazione binaria:
+        \[ \mathcal{L} = -\bigl(y\log\hat{y} + (1-y)\log(1-\hat{y})\bigr) \]
+    \item \textbf{Categorical Cross-Entropy} --- per classificazione
+        multiclasse (l'unica usata in questo progetto):
+        \[ \mathcal{L} = -\sum_i y_i\log\hat{y}_i \]
+        dove $\bm{y}$ è in \emph{one-hot encoding} e $\hat{\bm{y}}$ è
+        l'uscita della softmax.
+\end{itemize}
+
+\begin{concetto}[softmax + cross-entropy: la coppia che semplifica i conti]
+Quando l'output è softmax e la loss è categorical cross-entropy, il
+gradiente combinato si scrive in modo molto compatto:
 \[
-    \frac{\partial f_i}{\partial x_j} =
-    \begin{cases} f_i(1-f_i) & i=j \\ -f_i f_j & i \neq j \end{cases}
+    \frac{\partial \mathcal{L}}{\partial \bm{z}^{(L+1)}} = \hat{\bm{y}} - \bm{y}
 \]
-Nell'implementazione si usa solo la diagonale $f_i(1-f_i)$, che coincide con
-la formula della Sigmoid. Questa approssimazione evita di dover modificare
-la struttura della backpropagation (che si aspetta vettori, non matrici) ed
-è sufficiente perché su Iris le classi sono ben separabili e la rete
-converge comunque correttamente.
-\end{domanda}
-
-% ────────────────────────────────────────────────────────────
-\subsubsection{Backpropagation}
-% ────────────────────────────────────────────────────────────
-
-La backpropagation è l'algoritmo standard per addestrare reti neurali tramite
-discesa del gradiente. Funziona in due fasi.
-
-\vspace{0.2cm}
-\noindent\textbf{Forward pass} --- l'input viene propagato attraverso tutti
-i layer fino all'output. I valori intermedi (pre-attivazione $\mathbf{z}$ e
-post-attivazione $\mathbf{a}$) vengono salvati perché necessari nella fase
-successiva.
-
-\vspace{0.2cm}
-\noindent\textbf{Backward pass} --- l'errore viene propagato all'indietro
-calcolando il gradiente della funzione di loss rispetto a ogni peso tramite
-la \textbf{regola della catena}:
-\begin{equation}
-    \frac{\partial \mathcal{L}}{\partial \mathbf{W}^{(l)}} =
-    \boldsymbol{\delta}^{(l)} \cdot \left(\mathbf{a}^{(l-1)}\right)^T
-\end{equation}
-dove $\boldsymbol{\delta}^{(l)}$ è il vettore dei delta del layer $l$.
-
-\vspace{0.2cm}
-La funzione di loss usata è il \textbf{Mean Squared Error (MSE)}:
-\begin{equation}
-    \mathcal{L} = \frac{1}{2}\sum_i \left(\hat{y}_i - y_i\right)^2,
-    \qquad
-    \frac{\partial \mathcal{L}}{\partial \hat{y}_i} = \hat{y}_i - y_i
-\end{equation}
-
-I pesi vengono aggiornati sottraendo il gradiente moltiplicato per il
-learning rate $\eta$:
-\begin{equation}
-    \mathbf{W} \leftarrow \mathbf{W} - \eta \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{W}}
-\end{equation}
-
-\begin{concetto}{Perché salvare i valori intermedi?}
-L'implementazione mantiene \texttt{valori\_intermedi} e \texttt{valori\_input}
-come attributi della rete perché il calcolo dei delta nella fase backward
-richiede i valori pre-attivazione $\mathbf{z}^{(l)}$ (per applicare $f'$) e
-le attivazioni $\mathbf{a}^{(l-1)}$ (per calcolare il gradiente dei pesi).
-Senza salvarli durante il forward pass bisognerebbe ricalcolarli, raddoppiando
-il costo computazionale.
+dove $\bm{z}^{(L+1)}$ è il pre-attivazione dell'output. Questo risultato è
+sfruttato nel codice per evitare di calcolare separatamente la derivata
+della softmax (che è una matrice jacobiana) e quella della cross-entropy.
 \end{concetto}
 
-% ────────────────────────────────────────────────────────────
-\subsection{Algoritmi Genetici}
-% ────────────────────────────────────────────────────────────
+% ─────────────────────────────────────────────────────────────
+\subsection{Backward step e Gradient Descent}
+% ─────────────────────────────────────────────────────────────
 
-Gli algoritmi genetici sono metodi di ottimizzazione ispirati alla teoria
-dell'evoluzione naturale di Darwin. Operano su una \textbf{popolazione} di
-soluzioni candidate e le fanno evolvere attraverso generazioni successive
-applicando operatori biologicamente ispirati.
+Il \textbf{backward step} (o \emph{backpropagation}) è l'algoritmo che
+calcola, per ogni peso $w$ della rete, la derivata parziale
+$\frac{\partial \mathcal{L}}{\partial w}$ (il \emph{gradiente}). Una volta
+ottenuto, si aggiornano i pesi nella direzione opposta al gradiente:
 
-\subsubsection{Concetti Fondamentali}
+\begin{equation}
+    w \;\leftarrow\; w - \eta \frac{\partial \mathcal{L}}{\partial w}
+\end{equation}
 
-\begin{itemize}
-    \item \textbf{Cromosoma} --- rappresentazione di una soluzione candidata.
-          Nel progetto è una lista di tuple che descrive l'architettura della rete.
-    \item \textbf{Gene} --- elemento atomico del cromosoma. Nel progetto ogni
-          gene è una tupla \texttt{(n\_neuroni, funzione\_attivazione)}.
-    \item \textbf{Fitness} --- misura della qualità di ogni individuo.
-          Nel progetto è l'accuratezza sul validation set penalizzata per la complessità.
-    \item \textbf{Generazione} --- un'iterazione completa del ciclo evolutivo.
-    \item \textbf{Popolazione} --- l'insieme di tutti gli individui in una generazione.
-\end{itemize}
+dove $\eta$ è il \textbf{learning rate}. Questa è la \emph{discesa del
+gradiente} (gradient descent).
 
-\subsubsection{Il Ciclo Evolutivo}
+\subsubsection{L'intuizione}
 
-\begin{enumerate}
-    \item Generazione casuale della popolazione iniziale
-    \item Valutazione della fitness di ogni individuo
-    \item Selezione dei genitori (torneo)
-    \item Generazione dei figli tramite crossover
-    \item Mutazione dei figli
-    \item Sostituzione della vecchia popolazione con la nuova
-    \item Ripeti dal passo 2 per $N$ generazioni
-\end{enumerate}
-
-\subsubsection{Selezione Tramite Torneo}
-
-La \textbf{selezione a torneo} bilancia due esigenze opposte che un buon GA
-deve avere contemporaneamente:
+Il gradiente è la pendenza della funzione di loss rispetto al peso.
+Spostarsi nella direzione opposta significa scendere lungo la pendenza,
+verso il minimo della loss. Il learning rate $\eta$ controlla la
+\emph{dimensione del passo}:
 
 \begin{itemize}
-    \item \textbf{Sfruttamento} (\textit{exploitation}) --- i migliori individui
-          devono avere più probabilità di riprodursi.
-    \item \textbf{Esplorazione} (\textit{exploration}) --- anche individui
-          mediocri devono avere qualche possibilità, per mantenere diversità
-          genetica e ridurre il rischio di convergenza prematura verso ottimi locali.
+    \item $\eta$ troppo \emph{piccolo} → la convergenza è lentissima, in
+          $N$ epoche fissate la rete non arriva al minimo.
+    \item $\eta$ troppo \emph{grande} → i passi sono così ampi che la
+          rete ``salta'' oltre il minimo, oscilla o diverge.
+    \item $\eta$ \emph{giusto} → discesa rapida e stabile fino al minimo.
 \end{itemize}
 
-\begin{domanda}
-\textit{``Perché usi la selezione a torneo invece di selezionare sempre i migliori?''}\\
-Se si selezionassero sempre i migliori, dopo poche generazioni tutta la
-popolazione diventerebbe molto simile. Il GA smette di esplorare e converge
-prematuramente su un ottimo locale. Con il torneo, estraiamo $k=3$ individui
-a caso e scegliamo il migliore tra loro: un individuo forte ha alta probabilità
-di vincere, ma uno mediocre ha ancora chance se gli capita un torneo con
-avversari più deboli. La dimensione $k$ controlla il bilanciamento:
-$k$ grande $\Rightarrow$ più pressione selettiva, $k$ piccolo $\Rightarrow$ più esplorazione.
-\end{domanda}
+\subsubsection{Backpropagation: l'idea}
 
-% ────────────────────────────────────────────────────────────
-\subsection{Neural Architecture Search}
-% ────────────────────────────────────────────────────────────
+Il problema di calcolare $\frac{\partial \mathcal{L}}{\partial w}$ per
+\emph{tutti} i pesi della rete è che la loss dipende dal peso $w$ in modo
+indiretto: $w$ contribuisce all'attivazione di un neurone, che contribuisce
+a quella del layer successivo, e così via fino all'output. Bisogna quindi
+applicare la \textbf{regola della catena} ripetutamente.
 
-La NAS è il campo di ricerca che studia come automatizzare la progettazione
-di architetture di reti neurali. Questo progetto ne implementa una versione
-semplificata: un GA che esplora lo spazio delle architetture usando come
-funzione di fitness l'accuratezza ottenuta dopo training con backpropagation.
+L'osservazione chiave: i calcoli del layer $\ell$ riusano risultati del
+layer $\ell+1$. Se si parte dall'output e si va all'indietro layer per
+layer, si calcola tutto in un singolo \emph{forward pass} seguito da un
+singolo \emph{backward pass} --- ecco perché si chiama
+\emph{back-propagation}.
 
-Il concetto chiave è la \textbf{separazione tra due livelli di ottimizzazione}:
+\begin{algorithm}[H]
+\caption{Backpropagation (schema concettuale)}
+\begin{algorithmic}[1]
+\Require input $\bm{x}$, etichetta $\bm{y}$, rete con $L$ hidden layer
+\Ensure aggiornamento di tutti i pesi $\bm{W}^{(\ell)}$ e bias $\bm{b}^{(\ell)}$
+\State \textbf{Forward:} calcola $\bm{a}^{(\ell)}$ per $\ell = 1, \dots, L+1$ e memorizza tutto
+\State Calcola la loss $\mathcal{L}(\hat{\bm{y}}, \bm{y})$
+\State \textbf{Backward:} calcola $\bm{\delta}^{(L+1)} = \nabla_{\bm{z}^{(L+1)}} \mathcal{L}$
+\For{$\ell = L$ downto $1$}
+    \State $\bm{\delta}^{(\ell)} \gets (\bm{W}^{(\ell+1)})^\top \bm{\delta}^{(\ell+1)} \odot f'^{(\ell)}\!(\bm{z}^{(\ell)})$
+\EndFor
+\For{$\ell = 1$ to $L+1$}
+    \State $\bm{W}^{(\ell)} \gets \bm{W}^{(\ell)} - \eta\, \bm{\delta}^{(\ell)}(\bm{a}^{(\ell-1)})^\top$
+    \State $\bm{b}^{(\ell)} \gets \bm{b}^{(\ell)} - \eta\, \bm{\delta}^{(\ell)}$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Le quantità $\bm{\delta}^{(\ell)}$ sono il ``gradiente locale'' di ogni
+layer, calcolato in modo ricorsivo dall'output verso l'input.
+
+\subsubsection{SGD vs batch vs mini-batch}
+
+Esistono tre modalità di gradient descent a seconda di quanti esempi si
+usano per stimare il gradiente prima di aggiornare i pesi:
+\begin{itemize}
+    \item \textbf{Batch GD} --- usa tutti gli esempi del training set
+          per ogni aggiornamento. Stima accurata, ma lenta e costosa.
+    \item \textbf{Stochastic GD (SGD)} --- usa un solo esempio alla volta.
+          Stima rumorosa ma il rumore stesso aiuta a uscire da minimi
+          locali. È la modalità usata in questo progetto.
+    \item \textbf{Mini-batch GD} --- compromesso: $32, 64, 128$ esempi
+          alla volta. Standard nei framework moderni.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Inizializzazione dei pesi}
+% ─────────────────────────────────────────────────────────────
+
+I pesi non possono essere inizializzati a zero (tutti i neuroni
+diventerebbero identici e imparerebbero la stessa cosa --- problema della
+\emph{symmetry breaking}) né a valori troppo grandi (gradient explosion).
+Le strategie più usate sono:
 
 \begin{itemize}
-    \item Il \textbf{GA} ottimizza l'architettura --- parametri \emph{discreti}
-          come numero di layer, neuroni e funzioni di attivazione. Non esiste
-          un gradiente per questi parametri, quindi la discesa del gradiente
-          non è applicabile.
-    \item La \textbf{backpropagation} ottimizza i pesi all'interno di ogni
-          architettura --- parametri \emph{continui}. Opera su scale temporali
-          diverse e con un meccanismo completamente diverso.
+    \item \textbf{Inizializzazione di He} --- pesi $\sim \mathcal{N}(0,
+          \sigma^2)$ con $\sigma^2 = 2/n_{\text{in}}$. Ottimizzata per
+          ReLU/Leaky ReLU.
+    \item \textbf{Inizializzazione di Xavier (o Glorot)} --- $\sigma^2 =
+          1/n_{\text{in}}$. Ottimizzata per sigmoid e tanh.
 \end{itemize}
 
-\begin{domanda}
-\textit{``Il tuo progetto usa il Reinforcement Learning?''}\\
-No. Il RL è un paradigma in cui un agente impara agendo in un ambiente e
-ricevendo reward. Il progetto usa un GA (ottimizzazione evolutiva) combinato
-con backpropagation (ottimizzazione per gradiente). I modelli generativi come
-le GAN o gli LLM sono anch'essi un campo separato. Il punto di contatto con
-il RL esiste solo in alcune applicazioni avanzate (es. RLHF per LLM) che non
-riguardano questo progetto.
-\end{domanda}
+In questo progetto si applica He per ReLU e Leaky ReLU, Xavier per le
+altre funzioni. È un dettaglio importante: senza inizializzazione
+ragionata, reti più profonde tendono al \emph{vanishing} o
+\emph{exploding gradient}.
+
+\begin{concetto}[gradient clipping]
+Anche con buona inizializzazione, durante il training i gradienti possono
+``esplodere'' a valori giganteschi a causa di catene di moltiplicazioni.
+Il \emph{gradient clipping} è una protezione: se la norma del gradiente
+supera una soglia, si scala il gradiente per riportarlo entro la soglia.
+È implementato nella backpropagation del progetto.
+\end{concetto}
+
+\begin{riassunto}
+\begin{itemize}
+    \item Una rete neurale è una composizione di trasformazioni lineari $\bm{W}\bm{x}+\bm{b}$ alternate a non linearità $f$.
+    \item Le non linearità sono \emph{necessarie}: senza, la rete è equivalente a un singolo layer lineare.
+    \item Il forward step calcola la predizione; la loss misura l'errore; il backward step calcola il gradiente per scenderlo.
+    \item Il learning rate $\eta$ è l'iperparametro più critico della backpropagation: controlla la dimensione del passo.
+    \item Backpropagation = regola della catena applicata in modo efficiente partendo dall'output.
+\end{itemize}
+\end{riassunto}
 
 \newpage
 
-% ════════════════════════════════════════════════════════════
-\section{Implementazione}
-% ════════════════════════════════════════════════════════════
+% =============================================================
+\section{Algoritmi Genetici}
+% =============================================================
 
-% ────────────────────────────────────────────────────────────
-\subsection{Struttura del Progetto}
-% ────────────────────────────────────────────────────────────
+% ─────────────────────────────────────────────────────────────
+\subsection{La metafora biologica}
+% ─────────────────────────────────────────────────────────────
 
+Gli \textbf{algoritmi genetici} (GA) sono una classe di algoritmi
+evolutivi ispirati alla selezione naturale di Darwin. L'idea fondante è
+che soluzioni a un problema possono ``evolvere'' nel tempo se sottoposte
+ai meccanismi della selezione naturale: i ``più adatti'' sopravvivono e
+si riproducono, i ``meno adatti'' tendono a scomparire.
+
+Nel quadro di Russell \& Norvig, un GA può essere visto come una variante
+della \emph{ricerca locale stocastica}: si mantiene non un singolo stato
+candidato ma un'\emph{intera popolazione} di stati, e si esplora lo spazio
+combinando coppie di stati invece di muoversi a piccoli passi da uno
+stato singolo.
+
+\begin{concetto}[un GA è caratterizzato da queste scelte]
 \begin{itemize}
-    \item \texttt{nn\_layer.py} --- classe \texttt{layer}, funzioni di attivazione e derivate
-    \item \texttt{nn\_engine.py} --- classe \texttt{neural\_network} con feedforward e backpropagation
-    \item \texttt{genetic\_algorithm.py} --- classe \texttt{GeneticAlgorithm} con tutti gli operatori
-    \item \texttt{main.py} --- preprocessing, baseline, esecuzione GA e grafici
-    \item \texttt{test\_*.py} --- script per i quattro esperimenti di sensibilità
+    \item Dimensione della \emph{popolazione}.
+    \item \emph{Rappresentazione} di ogni individuo (stringa, lista, vettore\ldots).
+    \item Numero $\rho$ di genitori per ogni figlio (tipicamente $\rho=2$).
+    \item Procedura di \emph{selezione} dei genitori (a torneo, a roulette, \ldots).
+    \item Procedura di \emph{ricombinazione} (crossover).
+    \item \emph{Tasso di mutazione}.
+    \item Strategia di formazione della nuova generazione (con o senza elitismo).
 \end{itemize}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Rete Neurale (\texttt{nn\_engine.py})}
-% ────────────────────────────────────────────────────────────
-
-\subsubsection{Modifica al Costruttore}
-
-La modifica principale rispetto alla versione originale riguarda il costruttore
-della classe \texttt{neural\_network}. Il parametro \texttt{size\_hidden}
---- che imponeva lo stesso numero di neuroni a tutti gli hidden layer ---
-è stato sostituito con \texttt{hidden\_config}, una lista di tuple:
-
-\begin{lstlisting}[caption={Nuovo costruttore della rete neurale}]
-def __init__(self, hidden_config, size_input, size_output,
-             learning_rate, output_function):
-    self.size = len(hidden_config) + 1
-    self.input_size = size_input
-    self.output_size = size_output
-    self.lr = learning_rate
-    self.hiddens_layers = []
-    prev = size_input
-    for n_neuroni, f in hidden_config:
-        self.hiddens_layers.append(layer(n_neuroni, prev, f))
-        prev = n_neuroni
-    self.output_layer = layer(size_output, prev, output_function)
-\end{lstlisting}
-
-La variabile \texttt{prev} tiene traccia del numero di neuroni del layer
-precedente, che determina le colonne della matrice dei pesi del layer
-successivo. La matrice pesi di ogni layer ha forma
-$(\text{n\_neuroni\_corrente} \times \text{n\_neuroni\_precedente})$.
-
-Il valore \texttt{input\_size} viene salvato nel costruttore per permettere
-a \texttt{feedforward} di verificare che il vettore fornito abbia la
-dimensione corretta:
-
-\begin{lstlisting}[caption={Validazione dell'input in feedforward}]
-def feedforward(self, x):
-    x = np.array(x).reshape(-1, 1)
-    if x.shape[0] != self.input_size:
-        raise ValueError(
-            f"Input atteso di dimensione {self.input_size}, "
-            f"ricevuto {x.shape[0]}"
-        )
-    ...
-\end{lstlisting}
-
-\subsubsection{Funzioni di Attivazione per Layer}
-
-Le funzioni sono organizzate in due dizionari distinti:
-
-\begin{lstlisting}[caption={Separazione tra funzioni per hidden e output layer}]
-# Solo per hidden layer
-hidden_functions = [relu, leaky_relu, sigmoid]
-
-# Solo per output layer
-functions_output = {linear: d_linear,
-                    sigmoid: d_sigmoid,
-                    softmax: d_softmax}
-\end{lstlisting}
-
-Questa separazione riflette una scelta progettuale precisa: ReLU e Leaky ReLU
-non sono adatte all'output layer perché non producono distribuzioni di
-probabilità. La Softmax non è adatta agli hidden layer perché opera sull'intero
-vettore e non ha senso neurone per neurone.
-
-% ────────────────────────────────────────────────────────────
-\subsection{Algoritmo Genetico (\texttt{genetic\_algorithm.py})}
-% ────────────────────────────────────────────────────────────
-
-\subsubsection{Rappresentazione del Cromosoma}
-
-Un individuo è una lista Python di tuple:
-
-\begin{lstlisting}[caption={Esempi di cromosomi}]
-[(23, relu), (16, sigmoid)]          # 2 hidden layer
-[(32, relu), (16, relu), (8, relu)]  # 3 hidden layer
-[(8, leaky_relu)]                    # 1 solo hidden layer
-\end{lstlisting}
-
-Il GA può far variare il numero di layer tra individui diversi. La funzione
-di output è fissa a \texttt{softmax} per tutti gli individui.
-
-\subsubsection{Funzione di Fitness con Penalità di Complessità}
-
-\begin{lstlisting}[caption={Funzione di fitness}]
-def _fitness(self, individuo):
-    sum_accuracy = 0
-    for _ in range(self.K):          # K=3 run indipendenti
-        n = neural_network(individuo, 4, 3,
-                           self.learning_rate, softmax)
-        for _ in range(self.epochs): # training con SGD
-            x = random.randint(0, len(self.Y_train) - 1)
-            n.feedback(self.X_train[x], self.Y_train[x])
-        correct = 0
-        for i in range(len(self.Y_val)):
-            guess = n.feedforward(self.X_val[i])['guess']
-            if np.argmax(guess) == np.argmax(self.Y_val[i]):
-                correct += 1
-        sum_accuracy += correct / len(self.X_val)
-    accuracy = sum_accuracy / self.K
-    penalita = self._complessita(individuo)
-    fitness  = accuracy - self.lambda_ * penalita
-    return (fitness, accuracy)      # restituite entrambe
-\end{lstlisting}
-
-La fitness è calcolata come:
-\begin{equation}
-    \text{fitness} = \text{accuracy} - \lambda \cdot N_{\text{params}}
-\end{equation}
-dove $N_{\text{params}}$ è il numero totale di pesi e bias della rete. Fitness
-e accuracy vengono restituite separatamente: il GA usa la fitness per la
-selezione, ma nei grafici si mostra sempre l'accuracy pura per mantenere la
-leggibilità. Per definizione:
-\begin{equation}
-    \text{fitness} \leq \text{accuracy} \quad \forall\, \lambda > 0
-\end{equation}
-
-\begin{concetto}{Perché K=3 valutazioni per individuo?}
-I pesi della rete vengono inizializzati casualmente ad ogni valutazione.
-Con una sola run, un'architettura buona potrebbe ricevere una fitness bassa
-per pura sfortuna nell'inizializzazione. Con K=3 run indipendenti e media
-delle accuratezze, la varianza si riduce significativamente senza triplicare
-completamente il tempo di esecuzione.
 \end{concetto}
 
+% ─────────────────────────────────────────────────────────────
+\subsection{Componenti fondamentali}
+% ─────────────────────────────────────────────────────────────
+
+\begin{description}
+    \item[Individuo (cromosoma)] Una soluzione candidata al problema.
+        Nel progetto è una \texttt{lista di tuple}, dove ogni tupla
+        \texttt{(n\_neuroni, funzione)} rappresenta un hidden layer.
+    \item[Gene] Elemento atomico del cromosoma. Nel progetto, una singola
+        tupla \texttt{(n\_neuroni, funzione)}.
+    \item[Popolazione] Insieme di tutti gli individui in una generazione.
+    \item[Generazione] Una iterazione completa del ciclo evolutivo.
+    \item[Fitness] Funzione che misura la qualità di un individuo. È il
+        ``segnale evolutivo'' che guida la ricerca: più alta è meglio.
+\end{description}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Il ciclo evolutivo}
+% ─────────────────────────────────────────────────────────────
+
+Lo schema generale di un GA è il seguente:
+
+\begin{algorithm}[H]
+\caption{Algoritmo Genetico (schema generale)}
+\begin{algorithmic}[1]
+\State Genera una popolazione iniziale casuale di $N$ individui
+\Repeat
+    \State Valuta la fitness di ogni individuo
+    \State \textbf{Elitismo:} copia il migliore nella nuova popolazione
+    \While{nuova popolazione < $N$}
+        \State \emph{Selezione:} scegli due genitori dalla popolazione corrente
+        \State \emph{Crossover:} combina i due genitori per creare un figlio
+        \State \emph{Mutazione:} con probabilità $p_m$ modifica il figlio
+        \State Aggiungi il figlio alla nuova popolazione
+    \EndWhile
+    \State popolazione $\gets$ nuova popolazione
+\Until{condizione di terminazione (numero di generazioni o fitness target)}
+\State \textbf{return} l'individuo con fitness più alta mai trovato
+\end{algorithmic}
+\end{algorithm}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Selezione: torneo}
+% ─────────────────────────────────────────────────────────────
+
+Esistono diverse procedure di selezione, ognuna con un diverso modo di
+bilanciare due esigenze opposte:
+
+\begin{itemize}
+    \item \textbf{Sfruttamento (\emph{exploitation})} --- i migliori
+          individui devono avere più probabilità di riprodursi.
+    \item \textbf{Esplorazione (\emph{exploration})} --- anche individui
+          mediocri devono avere qualche chance, per mantenere diversità
+          genetica e ridurre il rischio di \emph{convergenza prematura}
+          su un ottimo locale.
+\end{itemize}
+
+Le tre procedure più comuni:
+
+\begin{itemize}
+    \item \textbf{Roulette wheel} --- ogni individuo ha probabilità di
+          essere scelto proporzionale alla sua fitness. Semplice ma sensibile
+          alla scala della fitness (un individuo molto migliore degli altri
+          domina subito).
+    \item \textbf{Selezione a torneo} --- (usata nel progetto). Si estraggono
+          $k$ individui a caso dalla popolazione e si sceglie il migliore tra
+          loro come genitore. Non sensibile alla scala assoluta della fitness,
+          solo all'\emph{ordinamento}: un individuo con fitness $0.5$ ha la
+          stessa probabilità di vincere su un avversario con fitness $0.4$
+          che su uno con fitness $0.1$.
+    \item \textbf{Selezione per rango} --- gli individui sono ordinati per
+          fitness, le probabilità sono assegnate in base al rango (non al
+          valore). Anche questa è insensibile alla scala.
+\end{itemize}
+
 \begin{domanda}
-\textit{``I pesi si ereditano dai genitori?''}\\
-No. Il cromosoma rappresenta solo l'architettura (struttura discreta).
-I pesi non fanno parte del cromosoma e vengono inizializzati casualmente
-ogni volta che si costruisce una rete durante la valutazione della fitness.
-In biologia: i geni trasmettono l'istruzione per costruire l'organismo,
-non l'organismo già costruito. L'architettura è il gene, i pesi sono
-le caratteristiche fisiche sviluppate durante il training.
+\textit{``Perché selezione a torneo invece di scegliere sempre i migliori?''}\\
+Se selezionassi sempre i migliori, dopo poche generazioni l'intera
+popolazione diventerebbe quasi identica e il GA smetterebbe di esplorare,
+restando incastrato in un ottimo locale. Con il torneo $k=3$, un individuo
+forte ha alta probabilità di vincere ma uno mediocre ha ancora chance se
+gli capita un torneo con avversari più deboli. La taglia $k$ controlla il
+bilanciamento: $k$ grande $\Rightarrow$ più pressione selettiva, $k$
+piccolo $\Rightarrow$ più esplorazione.
 \end{domanda}
 
-\subsubsection{Crossover}
+% ─────────────────────────────────────────────────────────────
+\subsection{Crossover}
+% ─────────────────────────────────────────────────────────────
 
-\begin{lstlisting}[caption={Crossover a doppio punto di taglio}]
-def _crossover(self, genitore1, genitore2):
-    t1 = random.randint(0, len(genitore1))
-    t2 = random.randint(0, len(genitore2))
-    figlio = genitore1[:t1] + genitore2[t2:]
-    if len(figlio) == 0:            # caso degenere
-        pool = genitore1 + genitore2
-        figlio.append(random.choice(pool))
-    return figlio
-\end{lstlisting}
+Il \textbf{crossover} (o \emph{ricombinazione}) combina due genitori per
+generare un figlio. L'idea: se entrambi i genitori sono buoni, è probabile
+che combinazioni di parti di ciascuno producano figli ancora migliori.
 
-I punti di taglio sono indipendenti per gestire genitori con lunghezze diverse.
-Il limite superiore è \texttt{len(genitore)} incluso, così lo slicing
-può restituire l'intera lista ($\texttt{lista[:n]} = \texttt{lista}$ se
-$n = \text{len}$).
+La forma classica per stringhe di lunghezza fissa è il \emph{single-point
+crossover}: si sceglie un punto di taglio casuale $c$, il figlio prende
+le posizioni $1\dots c$ dal genitore 1 e $c+1\dots n$ dal genitore 2.
+
+\begin{verbatim}
+genitore_1: [g1 g1 g1 | g1 g1 g1]   <- punto di taglio c
+genitore_2: [g2 g2 g2 | g2 g2 g2]
+figlio_1:   [g1 g1 g1 | g2 g2 g2]
+\end{verbatim}
+
+Nel progetto i cromosomi hanno \emph{lunghezza variabile} (architetture
+con numero di layer diverso), quindi serve una variante: si scelgono due
+punti di taglio indipendenti, $t_1$ per il primo genitore e $t_2$ per il
+secondo, e si concatena.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Mutazione}
+% ─────────────────────────────────────────────────────────────
+
+La \textbf{mutazione} introduce variazioni casuali nel cromosoma. È
+fondamentale per due motivi:
+\begin{itemize}
+    \item Mantiene \emph{diversità genetica} nella popolazione, evitando
+          la convergenza prematura.
+    \item Permette di esplorare zone dello spazio delle soluzioni che il
+          crossover da solo non potrebbe raggiungere (il crossover ricombina
+          ma non crea ``materiale genetico'' davvero nuovo).
+\end{itemize}
+
+Il \emph{mutation rate} $p_m$ è la probabilità che ciascun gene venga
+modificato. Valori tipici: $0.05$--$0.30$.
+
+\subsubsection{I tre tipi di mutazione del progetto}
+
+Ogni gene è una tupla \texttt{(n\_neuroni, funzione)}. Quando un gene viene
+mutato, una delle tre seguenti operazioni viene scelta con uguale
+probabilità:
+\begin{enumerate}
+    \item \textbf{Mutazione del numero di neuroni} --- si sostituisce
+          \texttt{n\_neuroni} con un nuovo valore casuale entro il range
+          ammesso, mantenendo la stessa funzione.
+    \item \textbf{Mutazione della funzione} --- si sostituisce la funzione
+          di attivazione con un'altra del pool, mantenendo lo stesso numero
+          di neuroni.
+    \item \textbf{Mutazione strutturale} --- si aggiunge un nuovo layer in
+          fondo o si rimuove uno dei layer esistenti (a meno che il
+          cromosoma non abbia un solo layer, nel qual caso non si rimuove).
+\end{enumerate}
+
+I primi due tipi raffinano un'architettura esistente; il terzo permette di
+esplorare \emph{topologie} diverse (numero di layer variabile).
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Elitismo}
+% ─────────────────────────────────────────────────────────────
+
+L'\textbf{elitismo} è una tecnica semplice e potente: il miglior individuo
+della generazione corrente viene copiato \emph{integralmente} nella
+generazione successiva, senza subire crossover o mutazione. Questo
+garantisce che la \emph{best fitness} della popolazione non possa mai
+peggiorare da una generazione all'altra.
+
+\begin{concetto}[perché elitismo]
+Senza elitismo, il miglior individuo trovato finora potrebbe essere
+``perso'' a causa della casualità di crossover/mutazione. Con elitismo, la
+ricerca è \emph{monotona}: una volta trovata un'architettura buona, non
+viene più persa. Lo svantaggio è una leggera riduzione della diversità,
+ma in pratica copiare 1 individuo su 20 ha effetto trascurabile.
+\end{concetto}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{GA come variante della ricerca locale}
+% ─────────────────────────────────────────────────────────────
+
+Vale la pena collocare il GA nel quadro più ampio degli algoritmi di
+ricerca locale visto a lezione (slide ``Ricerca in ambienti complessi'').
+Gli algoritmi di ricerca locale lavorano nel \emph{problem space} senza
+mantenere il percorso, e cercano una soluzione migliorando un singolo
+stato (o un piccolo insieme di stati) tramite mosse locali.
+
+\begin{itemize}
+    \item \textbf{Hill climbing} --- a ogni passo va al successore con
+          valore migliore. Veloce ma rischia ottimi locali.
+    \item \textbf{Simulated annealing} --- accetta anche mosse peggiorative
+          con probabilità decrescente nel tempo. Permette di uscire da
+          ottimi locali.
+    \item \textbf{Local beam search} --- mantiene $k$ stati in parallelo,
+          a ogni passo li espande tutti e tiene i migliori $k$ successori.
+    \item \textbf{Algoritmi genetici} --- come il beam search ma con
+          ricombinazione fra stati: i figli sono generati \emph{combinando}
+          due stati genitore, non da successori di un singolo stato.
+\end{itemize}
+
+\begin{domanda}
+\textit{``Cosa distingue un GA da un beam search?''}\\
+Il beam search mantiene $k$ stati e a ogni passo genera i successori di
+ciascuno indipendentemente. Il GA aggiunge il \emph{crossover}: i nuovi
+candidati possono combinare informazioni da più stati genitori. Questo
+rende il GA capace di mescolare ``ingredienti buoni'' provenienti da
+soluzioni diverse, cosa che il beam search non fa.
+\end{domanda}
+
+\begin{riassunto}
+\begin{itemize}
+    \item Un GA è un algoritmo di ricerca evolutiva che lavora su una popolazione di soluzioni candidate.
+    \item Le componenti fondamentali sono: rappresentazione, fitness, selezione, crossover, mutazione.
+    \item Le scelte di progettazione del GA bilanciano \emph{esplorazione} (mutazione, popolazione grande) e \emph{sfruttamento} (selezione, elitismo).
+    \item Il GA si colloca nella famiglia delle ricerche locali stocastiche, distinto da hill climbing e simulated annealing per la presenza della popolazione e del crossover.
+\end{itemize}
+\end{riassunto}
+
+\newpage
+
+% =============================================================
+\section{Implementazione del progetto}
+% =============================================================
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Architettura del sistema}
+% ─────────────────────────────────────────────────────────────
+
+Il sistema è composto da due moduli principali che collaborano:
+
+\begin{itemize}
+    \item Il modulo \texttt{neural\_network} contiene la classe
+          \texttt{neural\_network} (motore feedforward + backpropagation)
+          e le funzioni di attivazione.
+    \item Il modulo \texttt{genetic\_algorithm} contiene la classe
+          \texttt{GeneticAlgorithm} che orchestra il ciclo evolutivo e
+          chiama la rete come ``oracolo'' per valutare le architetture
+          candidate.
+\end{itemize}
+
+Il flusso di alto livello è:
+
+\begin{verbatim}
+     +---------------------------------------------+
+     | Carica dataset -> train / val / test split  |
+     +---------------------------+-----------------+
+                                 |
+                                 v
+     +---------------------------------------------+
+     | Inizializza popolazione casuale di N reti   |
+     +---------------------------+-----------------+
+                                 |
+                                 v
+     +---------------------------------------------+
+     | Per ogni generazione:                       |
+     |   1. valuta fitness di ogni individuo       |
+     |      (per ogni individuo: training BP +     |
+     |       accuracy su val, ripetuto K volte)    |
+     |   2. salva il migliore (elitismo)           |
+     |   3. genera nuova popolazione tramite       |
+     |      selezione + crossover + mutazione      |
+     +---------------------------+-----------------+
+                                 |
+                                 v
+     +---------------------------------------------+
+     | Riaddestra il migliore e valuta sul TEST    |
+     | set (stima onesta delle prestazioni)        |
+     +---------------------------------------------+
+\end{verbatim}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Rappresentazione del cromosoma}
+% ─────────────────────────────────────────────────────────────
+
+Un individuo è una lista Python di tuple, una per ogni hidden layer:
+
+\begin{verbatim}
+[(12, relu), (6, sigmoid)]              # 2 hidden layer
+[(32, relu), (16, relu), (8, relu)]     # 3 hidden layer
+[(8, linear)]                           # 1 hidden layer
+\end{verbatim}
+
+\begin{itemize}
+    \item Il \emph{numero} di tuple = numero di hidden layer (può variare
+          da individuo a individuo).
+    \item Per ogni tupla: \texttt{n\_neuroni} (intero in un range fissato,
+          es. $4$--$64$) e \texttt{funzione} (scelta fra ReLU, Leaky ReLU,
+          Sigmoid, Linear).
+    \item Il layer di input e quello di output sono \emph{determinati dal
+          dataset} (numero di feature in input, numero di classi in
+          output) e non fanno parte del cromosoma.
+    \item La funzione di output è fissa a \fnt{softmax}, perché tutti i
+          dataset usati sono di classificazione multiclasse.
+\end{itemize}
+
+\begin{domanda}
+\textit{``I pesi della rete fanno parte del cromosoma?''}\\
+No. Il cromosoma rappresenta solo l'\emph{architettura} (struttura
+discreta). I pesi sono inizializzati casualmente \emph{ogni volta} che si
+costruisce una rete per valutarla. La metafora biologica è precisa: i
+geni trasmettono le istruzioni per costruire l'organismo, non l'organismo
+già formato. L'architettura è il gene, i pesi sono le caratteristiche
+fisiche sviluppate durante il training.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Funzione di fitness}
+% ─────────────────────────────────────────────────────────────
+
+La fitness misura quanto è ``buona'' un'architettura. Questa è la
+formulazione finale usata nel progetto:
+
+\begin{equation}
+    \text{fitness} = \text{accuracy} - \lambda \cdot \log_{10}(N_{\text{params}})
+\end{equation}
+
+dove $\text{accuracy}$ è la percentuale di predizioni corrette sul
+validation set (mediata su $K$ run indipendenti), $N_{\text{params}}$ è
+il numero totale di pesi e bias dell'architettura, e $\lambda \geq 0$ è
+il coefficiente di penalità di complessità.
+
+\subsubsection{Perché penalizzare la complessità}
+
+Senza penalità ($\lambda = 0$) il GA tende a far crescere le architetture
+generazione dopo generazione, perché reti più grandi tendono ad avere
+accuracy leggermente superiore (maggiore capacità di adattarsi ai dati).
+Questo causa due problemi:
+\begin{itemize}
+    \item Reti grandi sono più soggette a \emph{overfitting} sul validation
+          set (gap fra accuracy val e accuracy test maggiore).
+    \item Reti grandi sono inutilmente costose da addestrare e usare.
+\end{itemize}
+La penalità $\lambda$ è una forma di \emph{regolarizzazione}: scoraggia la
+complessità per scelta progettuale.
+
+\subsubsection{Perché logaritmica e non lineare}
+
+Una prima versione del progetto usava penalità lineare, $\lambda \cdot
+N_{\text{params}}$. Funziona, ma il valore di $\lambda$ utile dipende
+fortemente dalla scala delle reti generate: una stessa $\lambda$ non
+penalizza praticamente nulla una rete piccola e annienta una rete grande.
+
+Con penalità logaritmica, il valore della penalità cresce in modo molto
+più lento: passare da $100$ a $10\,000$ parametri (un fattore $\times 100$)
+fa salire il termine di soli $2$ punti ($\log_{10}(100)=2$,
+$\log_{10}(10000)=4$). Questo rende $\lambda$ stabile e indipendente
+dalla scala assoluta dei parametri.
+
+\subsubsection{Perché K valutazioni}
+
+I pesi della rete sono inizializzati casualmente a ogni valutazione, e
+con SGD a campioni casuali il training è di per sé stocastico.
+Conseguenza: una stessa architettura, addestrata due volte di seguito,
+può ottenere accuracy diverse anche di alcuni punti percentuali. Questo
+\emph{rumore di valutazione} può rendere il segnale di fitness
+inaffidabile e portare il GA a selezionare individui ``fortunati''
+piuttosto che individui realmente buoni.
+
+La soluzione è ripetere la valutazione $K$ volte e mediare:
+\[
+    \text{accuracy} = \frac{1}{K}\sum_{k=1}^{K} \text{accuracy}_k
+\]
+
+Con $K=3$ la deviazione standard si dimezza rispetto a $K=1$ (vedi
+sezione esperimenti). Aumentare $K$ oltre $3$ riduce ulteriormente la
+varianza ma triplica o quintuplica il costo computazionale, con beneficio
+marginale.
+
+\begin{algorithm}[H]
+\caption{Valutazione della fitness di un individuo}
+\begin{algorithmic}[1]
+\Require cromosoma $c$ (architettura), training set, validation set
+\Ensure (fitness, accuracy)
+\State $\text{sum\_acc} \gets 0$
+\For{$k = 1$ to $K$}
+    \State Costruisci la rete $\mathcal{N}$ con architettura $c$ e pesi inizializzati a caso
+    \For{$\text{epoch} = 1$ to $E$}
+        \State Estrai un campione casuale $(x, y)$ dal training set
+        \State Esegui un passo di backpropagation su $(x, y)$
+    \EndFor
+    \State $\text{correct} \gets$ numero di predizioni corrette di $\mathcal{N}$ sul validation set
+    \State $\text{acc}_k \gets \text{correct} \;/\; |\text{validation set}|$
+    \State $\text{sum\_acc} \gets \text{sum\_acc} + \text{acc}_k$
+\EndFor
+\State $\text{accuracy} \gets \text{sum\_acc} / K$
+\State $\text{fitness} \gets \text{accuracy} - \lambda \cdot \log_{10}(\#\text{params}(c))$
+\State \textbf{return} $(\text{fitness}, \text{accuracy})$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Nota:} fitness e accuracy vengono restituite \emph{separatamente}.
+Il GA usa la fitness per la selezione, ma nei grafici si mostra
+l'accuracy pura per leggibilità.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Operatori genetici (pseudocodice)}
+% ─────────────────────────────────────────────────────────────
+
+\subsubsection{Selezione a torneo}
+
+\begin{algorithm}[H]
+\caption{\fnt{selezione\_torneo}(popolazione, fitness, $k$)}
+\begin{algorithmic}[1]
+\State Estrai casualmente $k$ indici dalla popolazione
+\State Ordina i $k$ individui per fitness decrescente
+\State \textbf{return} l'individuo con fitness più alta tra i $k$
+\end{algorithmic}
+\end{algorithm}
+
+Viene chiamata \emph{due volte} per ogni figlio da generare (una per
+ogni genitore). Il parametro $k$ (qui chiamato \texttt{tournament\_size})
+controlla la pressione selettiva.
+
+\subsubsection{Crossover a doppio punto di taglio}
+
+\begin{algorithm}[H]
+\caption{\fnt{crossover}(genitore$_1$, genitore$_2$)}
+\begin{algorithmic}[1]
+\State $t_1 \gets$ punto di taglio casuale in $[0, |\text{gen}_1|]$
+\State $t_2 \gets$ punto di taglio casuale in $[0, |\text{gen}_2|]$
+\State $\text{figlio} \gets \text{gen}_1[\,:t_1\,] + \text{gen}_2[\,t_2:\,]$
+\If{$\text{figlio}$ è vuoto} \Comment{caso degenere}
+    \State $\text{figlio} \gets [\,$un gene casuale dal pool dei due genitori$\,]$
+\EndIf
+\State \textbf{return} $\text{figlio}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Perché due punti di taglio diversi e non uno solo?} Perché i due
+genitori possono avere lunghezze diverse: con un singolo $t$ si
+rischierebbero combinazioni nonsensiche o sempre della stessa lunghezza.
+Con $t_1, t_2$ indipendenti il figlio può avere lunghezza qualsiasi tra
+$0$ e $|gen_1| + |gen_2|$, esplorando bene lo spazio delle topologie.
 
 \subsubsection{Mutazione}
 
-\begin{lstlisting}[caption={Mutazione con tre tipi di modifica}]
-def _mutazione(self, individuo):
-    individuo = [layer_ for layer_ in individuo]  # copia!
-    for i in range(len(individuo)):
-        if random.random() < self.mutation_rate:
-            mut = random.choices([0, 1, 2], weights=[1,1,1])[0]
-            if mut == 0:   # cambia n. neuroni
-                individuo[i] = (random.randint(4,32),
-                                individuo[i][1])
-            elif mut == 1: # cambia funzione
-                individuo[i] = (individuo[i][0],
-                                random.choice(self.hidden_functions))
-            else:          # mutazione strutturale
-                if random.randint(0,1)==0 and len(individuo)>1:
-                    del individuo[i]
-                    break  # indici non piu' validi dopo del
-                else:
-                    pos = random.randint(0, len(individuo))
-                    individuo.insert(pos,
-                        (random.randint(4,32),
-                         random.choice(self.hidden_functions)))
-    return individuo
-\end{lstlisting}
+\begin{algorithm}[H]
+\caption{\fnt{mutazione}(individuo, $p_m$)}
+\begin{algorithmic}[1]
+\State $\text{nuovo} \gets$ copia di individuo
+\For{ogni gene $(n, f)$ in $\text{nuovo}$}
+    \If{rand $< p_m$}
+        \State scegli casualmente uno dei tre tipi:
+        \begin{itemize}
+            \item[\textsc{Tipo 1}] sostituisci $n$ con un nuovo valore casuale (mantieni $f$)
+            \item[\textsc{Tipo 2}] sostituisci $f$ con un'altra funzione casuale (mantieni $n$)
+            \item[\textsc{Tipo 3}] aggiungi un nuovo gene casuale o rimuovi questo gene (se $|\text{nuovo}|>1$)
+        \end{itemize}
+    \EndIf
+\EndFor
+\State \textbf{return} $\text{nuovo}$
+\end{algorithmic}
+\end{algorithm}
 
-\begin{concetto}{Perché lavorare su una copia in \_mutazione?}
-In Python le liste sono passate \textbf{per riferimento}, non per valore.
-Se si modifica direttamente \texttt{individuo} si altera la lista originale
-nella popolazione, potendo corrompere i genitori anche dopo il crossover.
-La lista di comprensione \texttt{[layer\_ for layer\_ in individuo]} crea
-una copia superficiale: le tuple interne sono immutabili quindi non servono
-copie profonde.
+% ─────────────────────────────────────────────────────────────
+\subsection{Il ciclo principale (run)}
+% ─────────────────────────────────────────────────────────────
+
+\begin{algorithm}[H]
+\caption{\fnt{GeneticAlgorithm.run()}}
+\begin{algorithmic}[1]
+\State $P \gets$ popolazione iniziale di $N$ individui casuali
+\State Inizializza storia\_best\_fit, storia\_best\_acc, storia\_mean\_acc
+\State $\text{best\_global} \gets$ \texttt{None}
+\For{$g = 1$ to generazioni}
+    \State Per ogni $\text{ind} \in P$, calcola $(\text{fit}, \text{acc}) = \fnt{fitness}(\text{ind})$
+    \State Aggiorna best\_global se trovato un migliore
+    \State Salva statistiche della generazione $g$ nelle storie
+    \State $P_{\text{new}} \gets [\,$ best della generazione $\,]$ \Comment{elitismo}
+    \While{$|P_{\text{new}}| < N$}
+        \State $\text{p}_1 \gets \fnt{selezione\_torneo}(P, k)$
+        \State $\text{p}_2 \gets \fnt{selezione\_torneo}(P, k)$
+        \State $\text{f} \gets \fnt{crossover}(\text{p}_1, \text{p}_2)$
+        \State $\text{f} \gets \fnt{mutazione}(\text{f}, p_m)$
+        \State Aggiungi $\text{f}$ a $P_{\text{new}}$
+    \EndWhile
+    \State $P \gets P_{\text{new}}$
+\EndFor
+\State \textbf{return} (best\_global, storie)
+\end{algorithmic}
+\end{algorithm}
+
+\begin{concetto}[parallelizzazione delle valutazioni]
+La valutazione della fitness di ogni individuo è la fase più costosa
+dell'algoritmo (richiede $K$ training completi). Gli individui di una
+stessa generazione sono indipendenti fra loro, quindi possono essere
+valutati \emph{in parallelo}. Nel progetto si usa
+\texttt{ProcessPoolExecutor} di Python per distribuire le valutazioni su
+più CPU.
 \end{concetto}
 
-\subsubsection{Elitismo nel metodo \texttt{run()}}
+% ─────────────────────────────────────────────────────────────
+\subsection{Preprocessing del dataset}
+% ─────────────────────────────────────────────────────────────
 
-Il miglior individuo trovato fino alla generazione corrente viene copiato
-direttamente nella nuova popolazione prima di generare i figli. Questo
-garantisce che la qualità della soluzione migliore non possa mai peggiorare
-tra generazioni, anche in presenza di mutazioni sfortunate.
+Tre operazioni di preprocessing standard, in questo ordine:
 
-% ────────────────────────────────────────────────────────────
-\subsection{Preprocessing dei Dati}
-% ────────────────────────────────────────────────────────────
+\subsubsection{Split train / validation / test}
 
-Il dataset Iris contiene 150 campioni, 4 feature e 3 classi.
+Il dataset viene diviso in tre sottoinsiemi disgiunti, tipicamente con
+proporzioni $60\%/20\%/20\%$. Lo split è \textbf{stratificato}: la
+proporzione delle classi è preservata in ogni sottoinsieme. Il GA
+valuta la fitness sul \emph{validation}; il \emph{test} viene toccato
+solo alla fine, una volta sola, per riportare il risultato finale.
 
-\subsubsection{Split Train/Validation}
+\subsubsection{Normalizzazione (StandardScaler)}
 
-\begin{lstlisting}[caption={Split 80/20 con seed fisso}]
-x_train, x_val, y_train, y_val = train_test_split(
-    x, y, test_size=0.2, random_state=42)
-\end{lstlisting}
-
-\texttt{random\_state=42} garantisce la riproducibilità: lo stesso split ad
-ogni esecuzione permette confronti coerenti tra run diverse.
-
-\subsubsection{Normalizzazione}
-
-\begin{lstlisting}[caption={StandardScaler applicato correttamente}]
-scaler = StandardScaler()
-x_train = scaler.fit_transform(x_train)  # calcola media e std
-x_val   = scaler.transform(x_val)        # applica le stesse
-\end{lstlisting}
-
-\begin{domanda}
-\textit{``Perché non calcoli media e deviazione standard anche sul validation set?''}\\
-Questo introdurrebbe \textbf{data leakage}: stai usando informazioni sui dati
-futuri per trasformare i dati presenti. In produzione il validation set arriva
-dopo il training e non è disponibile in anticipo. Se usassi le sue statistiche
-la valutazione delle prestazioni sarebbe falsata --- tipicamente ottimistica.
-La regola è sempre: \texttt{fit} solo su training set, \texttt{transform}
-su tutto il resto con le stesse statistiche.
-\end{domanda}
-
-\subsubsection{One-Hot Encoding}
-
-Le etichette intere (0, 1, 2) vengono convertite in vettori binari:
-
-\[
-    0 \rightarrow [1,0,0], \quad
-    1 \rightarrow [0,1,0], \quad
-    2 \rightarrow [0,0,1]
-\]
-
-\begin{domanda}
-\textit{``Perché non usi semplicemente 0, 1, 2 come etichette?''}\\
-Questo introdurrebbe un \textbf{ordine artificiale} tra le classi: la rete
-potrebbe imparare che Virginica (2) è ``più grande'' di Setosa (0), il che
-non ha senso biologico. Con il one-hot encoding le tre classi sono trattate
-in modo simmetrico, ognuna con il proprio neurone di output dedicato.
-\end{domanda}
-
-\newpage
-
-% ════════════════════════════════════════════════════════════
-\section{Concetti Trasversali Importanti}
-% ════════════════════════════════════════════════════════════
-
-% ────────────────────────────────────────────────────────────
-\subsection{Overfitting}
-% ────────────────────────────────────────────────────────────
-
-Un modello in overfitting ha \textbf{imparato a memoria} i dati di training
-invece di imparare le regole generali sottostanti. Funziona perfettamente sui
-dati visti durante l'addestramento, ma fallisce su dati nuovi.
-
-\vspace{0.3cm}
-\noindent Il segnale classico è una discrepanza tra le due accuracy:
-\begin{center}
-\begin{tabular}{ll}
-    \toprule
-    Accuracy su training set  & 99\% \\
-    Accuracy su validation set & 65\% \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\noindent Il modello ha troppa \textbf{capacità} rispetto alla complessità del
-problema --- troppi parametri rispetto ai dati disponibili.
-
-\begin{concetto}{Collegamento con il progetto}
-Con $\lambda=0$ il GA trova una rete con 7 layer e 5447 parametri su soli
-120 campioni di training: condizioni ideali per l'overfitting. Il fatto che
-l'accuracy sul validation sia comunque 98.89\% suggerisce che Iris è così
-semplice da non causare overfitting nemmeno con reti enormi. Ma su dataset
-più complessi la stessa architettura probabilmente fallirebbe.
-La penalità $\lambda$ serve proprio a prevenire questo problema favorendo
-architetture più semplici.
-\end{concetto}
-
-\noindent Le tecniche principali per combattere l'overfitting sono:
-\begin{itemize}
-    \item \textbf{Regolarizzazione} (implementata) --- penalizzare la
-          complessità tramite $\lambda$.
-    \item \textbf{Dropout} (non implementato) --- spegnere casualmente neuroni
-          durante il training.
-    \item \textbf{Early stopping} (non implementato) --- interrompere il
-          training quando l'accuracy sul validation smette di migliorare.
-\end{itemize}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Classificazione vs Regressione}
-% ────────────────────────────────────────────────────────────
-
-\begin{itemize}
-    \item \textbf{Classificazione} --- l'output è una categoria discreta.
-          Iris è classificazione: ``a quale delle 3 specie appartiene questo fiore?''.
-          Si usa Softmax sull'output e si misura l'accuratezza.
-    \item \textbf{Regressione} --- l'output è un valore continuo.
-          Es: ``quanto costerà questa casa?''. Si usa Linear sull'output e
-          si misura MSE/RMSE.
-\end{itemize}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Generalizzabilità dei Risultati}
-% ────────────────────────────────────────────────────────────
-
-\begin{domanda}
-\textit{``L'architettura trovata su Iris funzionerebbe su altri dataset?''}\\
-No. Il GA trova la migliore architettura \emph{per quel dataset specifico}.
-L'architettura ottimale dipende dalla complessità del problema: numero di
-feature, separabilità delle classi, quantità di dati. Il \emph{metodo}
-(GA + NAS) è generalizzabile, ma il \emph{risultato} (l'architettura trovata)
-è specifico per Iris. Su dataset più complessi servirebbero più generazioni,
-popolazione più grande e architetture più profonde.
-\end{domanda}
-
-\newpage
-
-% ════════════════════════════════════════════════════════════
-\section{Esperimenti e Risultati}
-% ════════════════════════════════════════════════════════════
-
-Sono stati condotti quattro esperimenti variando un singolo parametro alla
-volta (analisi di sensibilità). La configurazione base è:
-
-\vspace{0.3cm}
-\begin{center}
-\begin{tabular}{ll}
-    \toprule
-    \rowcolor{headerblue}
-    \textcolor{white}{\textbf{Parametro}} & \textcolor{white}{\textbf{Valore}} \\
-    \midrule
-    \texttt{population\_size}   & 20      \\
-    \rowcolor{rowgray}
-    \texttt{generations}        & 30      \\
-    \texttt{mutation\_rate}     & 0.2     \\
-    \rowcolor{rowgray}
-    \texttt{learning\_rate}     & 0.01    \\
-    \texttt{lambda\_}           & 0.00005 \\
-    \rowcolor{rowgray}
-    \texttt{epochs}             & 150     \\
-    \texttt{tournament\_size}   & 3       \\
-    \rowcolor{rowgray}
-    \texttt{K}                  & 3       \\
-    \texttt{EPOCHS\_BASELINE}   & 450     \\
-    \bottomrule
-\end{tabular}
-\end{center}
-\vspace{0.3cm}
-
-\noindent Le epoche della baseline sono state fissate a
-$K \times \text{epochs} = 3 \times 150 = 450$: stesso numero di epoche
-usato per valutare un singolo individuo, confronto equo.
-
-% ────────────────────────────────────────────────────────────
-\subsection{Test 1 — Mutation Rate}
-% ────────────────────────────────────────────────────────────
-
-\begin{center}
-\begin{tabular}{lcccc}
-    \toprule
-    \rowcolor{headerblue}
-    \textcolor{white}{\textbf{mutation\_rate}} &
-    \textcolor{white}{\textbf{best\_accuracy}} &
-    \textcolor{white}{\textbf{best\_fitness}} &
-    \textcolor{white}{\textbf{n\_layer}} &
-    \textcolor{white}{\textbf{n\_params}} \\
-    \midrule
-    0.05       & 94.44\% & 83.27 & 3 & 2235 \\
-    \rowcolor{rowgray}
-    0.20       & 92.22\% & 85.73 & 3 & 1298 \\
-    0.40       & 91.11\% & 84.25 & 3 & 1372 \\
-    \rowcolor{rowgray}
-    Baseline   & 70.00\% & ---   & 2 & ---  \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-% ── inserire qui il grafico ──
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{./img/test_mutation_rate.png}
-    \caption{Evoluzione della fitness e accuracy al variare del mutation rate.}
-    \label{fig:mutation_rate}
-\end{figure}
-
-\noindent\textbf{Osservazioni principali:}
-
-\textbf{Tutte le run battono la baseline} con miglioramenti tra +21\% e +24\%.
-Questo valida l'approccio indipendentemente dal mutation rate scelto.
-
-\textbf{Mutation rate basso (0.05)} trova la migliore accuracy (94.44\%) ma
-genera architetture più complesse (2235 parametri), risultando nella fitness
-più bassa (83.27) per via della penalità. Con poca mutazione il GA si affida
-al solo crossover, che tende a preservare reti grandi.
-
-\textbf{Mutation rate medio (0.20)} ottiene la fitness più alta (85.73) con
-architettura più snella (1298 parametri): miglior compromesso tra accuratezza
-e complessità.
-
-\textbf{Mutation rate alto (0.40)} introduce troppo rumore, rendendo difficile
-accumulare miglioramenti. La curva della mean accuracy è la più bassa e
-rumorosa lungo tutta la run.
-
-\textit{Valore ottimale: \textbf{mutation\_rate = 0.2}}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Test 2 — Lambda (Penalità di Complessità)}
-% ────────────────────────────────────────────────────────────
-
-\begin{center}
-\begin{tabular}{lcccc}
-    \toprule
-    \rowcolor{headerblue}
-    \textcolor{white}{\textbf{lambda}} &
-    \textcolor{white}{\textbf{best\_accuracy}} &
-    \textcolor{white}{\textbf{best\_fitness}} &
-    \textcolor{white}{\textbf{n\_layer}} &
-    \textcolor{white}{\textbf{n\_params}} \\
-    \midrule
-    0.0    & 98.89\% & 98.89 & 7 & 5447 \\
-    \rowcolor{rowgray}
-    0.00005 & 88.89\% & 87.83 & 1 & 211  \\
-    0.0002  & 84.44\% & 80.06 & 1 & 219  \\
-    \rowcolor{rowgray}
-    Baseline & 60.00\% & ---  & 2 & ---  \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{img/test_lambda.png}
-    \caption{Evoluzione della fitness e accuracy al variare di lambda.}
-    \label{fig:lambda}
-\end{figure}
-
-\noindent\textbf{Osservazioni principali:}
-
-\textbf{Con $\lambda=0$} fitness e accuracy coincidono (nessuna penalità) e
-il GA trova 7 layer con 5447 parametri: massimizza solo l'accuracy senza
-nessun costo per la complessità. Condizioni ideali per overfitting su dataset
-più complessi.
-
-\textbf{Con $\lambda=0.00005$} la complessità si riduce del 96\%: da 5447 a
-211 parametri. Anche una penalità piccola è sufficiente perché su 5447
-parametri vale $0.00005 \times 5447 = 0.27$ (27 punti di accuracy sottratti).
-
-\textbf{Con $\lambda=0.0002$} il GA trova architetture troppo semplici
-sacrificando troppa accuracy. Lambda è troppo aggressivo.
-
-\textit{Valore ottimale: \textbf{lambda = 0.00005}}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Evoluzione della Penalità: da Lineare a Logaritmica}
-% ────────────────────────────────────────────────────────────
-
-\subsubsection{Motivazione del Cambiamento}
-
-L'analisi del Test~2 ha evidenziato un problema strutturale nella formula lineare:
-il coefficiente $\lambda$ è difficile da calibrare perché il numero di parametri
-$|\theta|$ di un'architettura varia di \emph{ordini di grandezza} nello spazio
-di ricerca, mentre l'accuracy è confinata in $[0, 1]$.
-
-\medskip
-
-Le due formule a confronto sono:
-
-\begin{equation}
-    \text{fitness}_{\text{lin}} = \text{accuracy} - \lambda_{\text{lin}} \cdot |\theta|
-    \label{eq:fitness_lin}
-\end{equation}
-
-\begin{equation}
-    \text{fitness}_{\text{log}} = \text{accuracy} - \lambda_{\text{log}} \cdot \log_{10}(|\theta|)
-    \label{eq:fitness_log}
-\end{equation}
-
-\noindent
-Il problema concreto emerge quando si osserva quanto varia effettivamente la penalità
-tra un'architettura minima e una massimale, a parità di $\lambda$:
-
-\begin{center}
-\begin{tabular}{lcccc}
-    \toprule
-    \rowcolor{headerblue}
-    \textcolor{white}{\textbf{Architettura}} &
-    \textcolor{white}{\textbf{$|\theta|$}} &
-    \textcolor{white}{\textbf{$\log_{10}(|\theta|)$}} &
-    \textcolor{white}{\textbf{Pen. lineare ($\lambda$=0.00005)}} &
-    \textcolor{white}{\textbf{Pen. log$_{10}$ ($\lambda$=0.05)}} \\
-    \midrule
-    1L $\times$ 7n     &    59 & 1.77 & 0.003 & 0.089 \\
-    \rowcolor{rowgray}
-    1L $\times$ 31n    &   251 & 2.40 & 0.013 & 0.120 \\
-    6L medi            &  7545 & 3.88 & 0.377 & 0.194 \\
-    \rowcolor{rowgray}
-    7L grandi          & 13670 & 4.14 & 0.684 & 0.207 \\
-    \bottomrule
-\end{tabular}
-\end{center}
-
-\medskip
-
-\noindent
-Con penalità lineare la penalità cresce di un \textbf{fattore 228$\times$} passando
-dalla rete minima a quella massimale: qualunque valore di $\lambda$ funziona solo
-per un sottoinsieme ristretto delle architetture che il GA può esplorare.
-Con $\log_{10}$, invece, la penalità cresce di un fattore \textbf{2.3$\times$} sullo
-stesso range, rendendo $\lambda$ stabile indipendentemente dalla scala delle reti generate.
+Le feature vengono normalizzate per avere media $0$ e deviazione
+standard $1$:
+\[ x' = \frac{x - \mu}{\sigma} \]
+Questo aiuta la backpropagation perché tutte le feature operano sulla
+stessa scala (altrimenti pesi diversi devono compensare scale diverse).
 
 \begin{attenzione}
-Il valore ottimale di $\lambda$ con penalità logaritmica \textbf{non è confrontabile}
-con quello usato in precedenza per la penalità lineare. Con la formula lineare era
-$\lambda = 0.00005$; con $\log_{10}$ il range utile è dell'ordine di $[0.05,\, 0.30]$,
-perché la grandezza su cui si moltiplica ($\log_{10}(|\theta|) \approx 1.8$--$4.1$)
-è completamente diversa da $|\theta|$ ($\approx 59$--$13670$).
+$\mu$ e $\sigma$ vanno calcolati \emph{solo sul training set}. Si applicano
+poi gli stessi valori (senza ricalcolarli) al validation e al test set.
+Calcolarli sull'intero dataset è una forma di \emph{data leakage}:
+informazione del test set si ``infiltra'' nel training, gonfiando le
+stime di performance. Questo è oggetto del Test 9B.
 \end{attenzione}
 
-\begin{domanda}
-Perché $\log_{10}$ e non il logaritmo naturale $\ln$?
+\subsubsection{One-hot encoding}
 
-La scelta è convenzionale: $\log_{10}(|\theta|)$ conta gli \emph{ordini di grandezza}
-in base 10 (le ``cifre'' del numero), il che lo rende intuitivo da interpretare.
-Dal punto di vista matematico, $\ln(x) = \log_{10}(x) \cdot \ln(10) \approx
-2.303 \cdot \log_{10}(x)$, quindi usare $\ln$ equivale a usare $\log_{10}$ con
-$\lambda$ moltiplicato per $\approx 2.303$: i due approcci sono equivalenti a meno
-di una riscalatura di $\lambda$.
+Le etichette di classe (interi $0, 1, 2, \ldots$) vengono convertite in
+vettori binari con un solo $1$ nella posizione corrispondente alla classe:
+\[
+    y = 2 \;\rightarrow\; \bm{y} = [0,\, 0,\, 1,\, 0,\, \ldots,\, 0]
+\]
+Questo è necessario perché la rete ha tanti neuroni di output quante sono
+le classi, e la softmax produce una distribuzione di probabilità su tutte
+le classi.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{La baseline di confronto}
+% ─────────────────────────────────────────────────────────────
+
+Per dare senso ai numeri prodotti dal GA, ogni esperimento confronta il
+risultato con una \textbf{baseline}: una rete con architettura
+\emph{fissa} addestrata con backpropagation classica, senza l'aiuto del
+GA. La baseline utilizzata è $[(8,\text{leaky\_relu}), (8,\text{leaky\_relu})]$.
+
+\begin{itemize}
+    \item Se il GA non batte la baseline, l'intero costo computazionale
+          della ricerca evolutiva non è giustificato.
+    \item Se il GA la batte, il valore aggiunto della ricerca automatica
+          dell'architettura è dimostrato concretamente.
+\end{itemize}
+
+Per equità, la baseline è addestrata per lo stesso numero di epoche
+totali usato per valutare un singolo individuo del GA: $K \cdot E$ epoche
+(es. $3 \cdot 500 = 1500$).
+
+\begin{riassunto}
+\begin{itemize}
+    \item Il sistema è composto dal modulo \texttt{neural\_network} (motore) e \texttt{genetic\_algorithm} (orchestratore).
+    \item Il cromosoma è una lista di tuple \texttt{(n\_neuroni, funzione)}, una per hidden layer.
+    \item La fitness è $\text{accuracy} - \lambda \cdot \log_{10}(N_{\text{params}})$, mediata su $K$ run.
+    \item Crossover a doppio punto di taglio (per gestire lunghezze variabili), mutazione di 3 tipi (numero, funzione, struttura), elitismo.
+    \item Lo split è stratificato e la normalizzazione \emph{si calcola solo sul training set} per evitare data leakage.
+    \item La baseline è una rete fissa che permette di misurare se il GA aggiunge valore.
+\end{itemize}
+\end{riassunto}
+
+\newpage
+
+% =============================================================
+\section{Concetti chiave trasversali}
+% =============================================================
+
+Questa sezione raccoglie alcuni concetti che attraversano il progetto e
+che molto probabilmente verranno chiesti all'orale. Ognuno è collegato
+all'una o all'altra delle scelte progettuali.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Overfitting nel contesto del progetto}
+% ─────────────────────────────────────────────────────────────
+
+Il GA, lasciato senza vincoli, ha una naturale tendenza a far crescere
+le architetture. Più una rete è grande, più parametri liberi ha, e più
+è capace di adattarsi (anche \emph{troppo}) ai dati. Sul training set
+questo si traduce in accuracy più alta; sul validation set anche, ma in
+misura minore; sul test set spesso \emph{peggio}.
+
+\begin{concetto}[overfitting sul validation set]
+È una forma sottile di overfitting: il GA non sta facendo overfitting
+sul \emph{training} (la backpropagation lo gestisce), sta facendo
+overfitting sul \emph{validation set} perché lo usa come ``oracolo'' per
+scegliere l'architettura. Una rete che ha avuto fortuna in qualche
+peculiarità del validation viene selezionata, ma quella fortuna non si
+trasferisce al test set.
+\end{concetto}
+
+La penalità di complessità $\lambda$ è la difesa diretta: scoraggia il
+GA dal selezionare reti grandi che hanno qualche frazione di punto di
+accuracy in più ma molti parametri in più. Il Test 4 (sezione successiva)
+mostra empiricamente questo effetto: senza penalità il GA seleziona reti
+con migliaia di parametri; con $\lambda = 0.05$ seleziona la stessa
+architettura ottima ma più snella.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Data leakage}
+% ─────────────────────────────────────────────────────────────
+
+Il \textbf{data leakage} è qualunque situazione in cui informazione del
+validation o test set si ``infiltra'' nel processo di training,
+gonfiando artificialmente le stime di performance. Le forme più comuni:
+
+\begin{itemize}
+    \item \textbf{Leakage da preprocessing} --- calcolare $\mu$, $\sigma$
+          (StandardScaler) o altre statistiche sull'\emph{intero} dataset
+          invece che solo sul training set. Le statistiche del test
+          ``contaminano'' la trasformazione applicata al training. È
+          oggetto del Test 9B.
+    \item \textbf{Leakage temporale} --- in serie temporali, usare dati
+          futuri per predire il passato. Non rilevante per Iris/Digits ma
+          critico in finanza.
+    \item \textbf{Bias ottimistico val vs test} --- selezionare un modello
+          in base alla sua performance sul validation set e poi riportare
+          quella stessa performance come ``risultato''. Il modello scelto è
+          per costruzione il più fortunato sul validation, quindi la stima
+          è ottimistica. Oggetto del Test 9A.
+\end{itemize}
+
+\begin{concetto}[la regola d'oro per evitare data leakage]
+Tutto ciò che richiede statistiche dei dati (medie, varianze,
+trasformazioni) si calcola \emph{esclusivamente} sul training set, e si
+applica al validation/test \emph{senza ricalcolare nulla}. Il test set si
+tocca \emph{una sola volta}, alla fine.
+\end{concetto}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Esplorazione vs sfruttamento}
+% ─────────────────────────────────────────────────────────────
+
+Quasi ogni iperparametro del GA si può leggere come una scelta sul
+trade-off tra esplorazione e sfruttamento:
+
+\begin{center}
+\begin{tabular}{p{3.4cm} p{4.6cm} p{4.6cm}}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{Iperparametro}} &
+    \textcolor{white}{\textbf{Verso esplorazione}} &
+    \textcolor{white}{\textbf{Verso sfruttamento}} \\
+    \midrule
+    population\_size  & grande (più diversità)        & piccolo (concentrazione) \\
+    \rowcolor{rowgray}
+    mutation\_rate    & alto (più variazioni)         & basso (preserva i buoni) \\
+    tournament\_size  & piccolo (più chance ai meno forti) & grande (i migliori dominano) \\
+    \rowcolor{rowgray}
+    elitismo          & senza (più churn)             & con (preserva il top) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{domanda}
+\textit{``Cosa succede se il mutation rate è troppo alto?''}\\
+Il GA si riduce a una ricerca quasi casuale. Ogni generazione modifica
+così tanto i figli che le caratteristiche buone trovate dai genitori
+vanno perse. Empiricamente, con $p_m \geq 0.4$ la \emph{mean accuracy}
+della popolazione fatica a salire e diventa rumorosa: il segnale
+evolutivo si perde.
 \end{domanda}
 
-\subsubsection{Test 2b — Sensibilità di $\lambda$ con Penalità Logaritmica}
+% ─────────────────────────────────────────────────────────────
+\subsection{Generalizzabilità: metodo vs risultato}
+% ─────────────────────────────────────────────────────────────
 
-\noindent\textbf{Configurazione} (identica al Test~2 per confronto diretto):
+\begin{domanda}
+\textit{``L'architettura trovata su Digits funzionerebbe su altri dataset?''}\\
+No. Il GA trova la migliore architettura \emph{per quel dataset specifico}.
+L'architettura ottimale dipende dalla complessità del problema (numero di
+feature, separabilità delle classi, quantità di dati). Il \emph{metodo}
+(GA + NAS) è generalizzabile, ma il \emph{risultato} (l'architettura
+trovata) è specifico per il dataset. Su problemi più complessi servirebbero
+più generazioni, popolazione più grande e architetture più profonde. Il
+Test 8 misura proprio questo, eseguendo lo stesso GA su quattro dataset
+diversi e confrontando le architetture trovate.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Ottimizzazione annidata: due livelli}
+% ─────────────────────────────────────────────────────────────
+
+\begin{concetto}[GA + backpropagation = due ottimizzatori in cascata]
+Nel progetto convivono due algoritmi di ottimizzazione che operano su
+scale e parametri diversi:
+\begin{itemize}
+    \item \textbf{Livello esterno} (lento, su parametri \emph{discreti}):
+          il GA ottimizza l'\emph{architettura} (numero di layer, neuroni,
+          funzioni di attivazione). Lavora su una popolazione, una
+          generazione alla volta.
+    \item \textbf{Livello interno} (veloce, su parametri \emph{continui}):
+          la backpropagation ottimizza i \emph{pesi} di ogni rete candidata.
+          Lavora con SGD su un singolo individuo, una epoca alla volta.
+\end{itemize}
+La fitness del GA include la performance ottenuta dopo che il livello
+interno è terminato. È un caso classico di \emph{bilevel optimization}.
+\end{concetto}
+
+\begin{domanda}
+\textit{``Perché non far evolvere anche i pesi al GA?''}\\
+Perché lo spazio dei pesi è continuo e ad altissima dimensionalità (decine
+di migliaia di parametri reali per una rete media). Il GA è efficiente su
+spazi discreti e di dimensione moderata, ma è enormemente inefficiente
+sui pesi: la backpropagation, che usa l'informazione del gradiente, è
+ordini di grandezza più rapida. La filosofia ``ognuno fa quello che sa
+fare meglio'': GA sui parametri discreti (struttura), backpropagation sui
+parametri continui (pesi).
+\end{domanda}
+
+\begin{riassunto}
+\begin{itemize}
+    \item Il GA fa overfitting sul \emph{validation set}, non sul training: la penalità $\lambda$ lo previene.
+    \item Tre forme di data leakage da conoscere: preprocessing, temporale, bias val/test.
+    \item Quasi ogni iperparametro del GA è un controllo del trade-off esplorazione/sfruttamento.
+    \item Il metodo (GA + NAS) è generale, ma l'architettura trovata è specifica del dataset.
+    \item Il progetto è un caso di \emph{ottimizzazione annidata}: GA sui parametri discreti, backpropagation sui pesi continui.
+\end{itemize}
+\end{riassunto}
+
+\newpage
+
+% =============================================================
+\section{Esperimenti e Risultati}
+% =============================================================
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Metodologia: analisi di sensibilità}
+% ─────────────────────────────────────────────────────────────
+
+L'obiettivo degli esperimenti è rispondere a una domanda: \emph{quali
+valori degli iperparametri del GA producono il miglior compromesso tra
+qualità della soluzione, complessità della rete e costo computazionale?}
+
+La metodologia adottata è l'\textbf{analisi di sensibilità}: si varia
+\emph{un iperparametro alla volta} tenendo fissi tutti gli altri,
+osservando l'effetto netto sulla \texttt{test\_accuracy} e su
+\texttt{n\_params}. I test vengono eseguiti in un ordine preciso
+(ottimizzazione sequenziale): ogni volta che un parametro viene fissato,
+i test successivi usano quel valore aggiornato.
+
+\subsubsection{Dataset principale: \fnt{load\_digits}}
+
+Tutti i test di sensibilità sono condotti sul dataset \texttt{load\_digits}
+di scikit-learn:
+\begin{itemize}
+    \item $1797$ immagini $8\times 8$ di cifre scritte a mano (riconoscibili
+          come $0\dots 9$);
+    \item $64$ feature continue (intensità dei pixel);
+    \item $10$ classi (le cifre);
+    \item complessità: alta. È stato scelto come dataset principale
+          \emph{proprio perché} è abbastanza complesso da rendere
+          significative le differenze fra architetture (su Iris, troppo
+          semplice, ogni rete ragionevole arriva al $90\%$+).
+\end{itemize}
+
+Solo nel Test 8 si confrontano i risultati su quattro dataset diversi
+(Iris, Wine, Breast Cancer, Digits) per testare la generalizzabilità del
+metodo.
+
+\subsubsection{Configurazione di base}
+
+I valori di partenza sono volutamente conservativi (popolazione e
+generazioni piccole per contenere il tempo di esecuzione):
 
 \begin{center}
 \begin{tabular}{ll}
     \toprule
     \rowcolor{headerblue}
-    \textcolor{white}{\textbf{Parametro}} & \textcolor{white}{\textbf{Valore}} \\
+    \textcolor{white}{\textbf{Parametro}} & \textcolor{white}{\textbf{Valore di partenza}} \\
     \midrule
-    population\_size & 20 \\
+    population\_size  & 20    \\
     \rowcolor{rowgray}
-    generations      & 30 \\
-    mutation\_rate   & 0.20 \\
+    generations       & 20    \\
+    mutation\_rate    & 0.2   \\
     \rowcolor{rowgray}
-    learning\_rate   & 0.01 \\
-    epochs           & 150 \\
+    tournament\_size  & 5     \\
+    epochs            & 150   \\
     \rowcolor{rowgray}
-    tournament\_size & 3 \\
-    K                & 3 \\
+    learning\_rate    & 0.01  \\
+    lambda\_          & 0.05  \\
     \rowcolor{rowgray}
-    \textbf{lambda (variato)} & \textbf{0.0 / 0.05 / 0.15 / 0.30} \\
+    K                 & 5     \\
+    seed              & 42    \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\begin{center}
-\begin{tabular}{lccccc}
-    \toprule
-    \rowcolor{headerblue}
-    \textcolor{white}{\textbf{$\lambda$}} &
-    \textcolor{white}{\textbf{best\_accuracy}} &
-    \textcolor{white}{\textbf{best\_fitness}} &
-    \textcolor{white}{\textbf{n\_layer}} &
-    \textcolor{white}{\textbf{n\_params}} &
-    \textcolor{white}{\textbf{$\log_{10}(|\theta|)$}} \\
-    \midrule
-    0.00  & 97.78\% & 97.78 & 7 & 13670 & 4.14 \\
-    \rowcolor{rowgray}
-    0.05  & 100.00\% & 80.61 & 6 & 7545 & 3.88 \\
-    0.15  & 90.00\% & 54.00 & 1 &  251 & 2.40 \\
-    \rowcolor{rowgray}
-    0.30  & 71.11\% & 17.99 & 1 &   59 & 1.77 \\
-    \midrule
-    Baseline & 33.33\% & --- & 2 & --- & --- \\
-    \bottomrule
-\end{tabular}
-\end{center}
+L'ordine di ottimizzazione: \texttt{epochs} → \texttt{K} →
+\texttt{learning\_rate} → \texttt{lambda} → \texttt{mutation\_rate} →
+\texttt{population} → \texttt{generations}, seguito dai test 8
+(generalizzabilità) e 9 (data leakage).
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{img/test_lambda_log.png}
-    \caption{Evoluzione di fitness e accuracy al variare di $\lambda$ con penalità $\log_{10}$.}
-    \label{fig:lambda_log}
-\end{figure}
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 1 — Numero di epoche}
+% ─────────────────────────────────────────────────────────────
 
-\noindent\textbf{Osservazioni principali:}
-
-\textbf{Con $\lambda=0$} fitness e accuracy coincidono (nessuna penalità): il GA trova
-una rete a 7 layer con 13670 parametri, maggiore di quella trovata nel Test~2 con la
-stessa configurazione (5447 parametri). Senza alcun vincolo, l'evoluzione converge su
-architetture molto profonde e larghe.
-
-\textbf{Con $\lambda=0.05$} la penalità è leggera ($\approx 0.194$ per una rete da 7545
-parametri). Il GA riesce a trovare una rete a 6 layer che raggiunge il \textbf{100\% di
-accuracy} sul validation set. Tuttavia la rete rimane complessa: la fitness è scesa a
-80.61, segno che la penalità è ancora troppo lieve per spingere verso soluzioni semplici.
-
-\textbf{Con $\lambda=0.15$} si osserva il cambiamento più significativo: il GA collassa
-su un'architettura a \textbf{1 solo hidden layer} con 251 parametri, mantenendo comunque
-una accuracy del 90\%. Questo è il compromesso più interessante: una riduzione di 30$\times$
-nei parametri rispetto a $\lambda=0.05$ a fronte di soli 10 punti percentuali di accuracy
-persi. La fitness (54.00) riflette correttamente il costo della penalità su una rete
-comunque compatta.
-
-\textbf{Con $\lambda=0.30$} la penalità è eccessiva: il GA seleziona reti con soli 59
-parametri (7 neuroni), troppo poche per apprendere il dataset Iris in modo adeguato.
-L'accuracy crolla al 71.11\% e la fitness di 17.99 è molto bassa. La penalità ha preso
-il sopravvento sulla qualità della soluzione.
-
-\textbf{Baseline a 33.33\%}: questa esecuzione ha prodotto una baseline particolarmente
-bassa — pari alla probabilità casuale su 3 classi — a causa della variabilità
-nell'addestramento con un numero ridotto di epoche (450) senza seed fisso. Questo
-conferma che la baseline a rete fissa è sensibile all'inizializzazione casuale dei pesi;
-ogni configurazione GA supera ampiamente questo risultato.
-
-\begin{concetto}{Interpretazione di $\lambda$ con penalità logaritmica}
-Con $\log_{10}$, il valore di $\lambda$ esprime approssimativamente \emph{quanta
-accuracy si è disposti a cedere per ogni ordine di grandezza aggiuntivo di parametri}.
-Con $\lambda = 0.15$, una rete 10$\times$ più grande dell'attuale viene penalizzata
-di circa 15 punti percentuali di fitness: un costo sufficiente a scoraggiare la
-complessità eccessiva senza annullare il segnale della accuracy.
-\end{concetto}
-
-\textit{Valore ottimale: \textbf{$\lambda = 0.15$}} — offre il miglior compromesso tra
-semplicità dell'architettura (1 layer, 251 parametri) e qualità della soluzione (90\%
-accuracy), risultando la configurazione più robusta e facilmente difendibile come
-scelta progettuale.
-
-% ────────────────────────────────────────────────────────────
-\subsection{Test 3 — Numero di Epoche}
-% ────────────────────────────────────────────────────────────
+\textbf{Ipotesi.} Poche epoche $\Rightarrow$ la rete non converge
+$\Rightarrow$ fitness rumorosa $\Rightarrow$ il GA seleziona architetture
+``per caso''. Molte epoche $\Rightarrow$ stima accurata ma costosa.
 
 \begin{center}
-\begin{tabular}{lcccc}
+\begin{tabular}{lcc}
     \toprule
     \rowcolor{headerblue}
     \textcolor{white}{\textbf{epochs}} &
-    \textcolor{white}{\textbf{best\_accuracy}} &
-    \textcolor{white}{\textbf{best\_fitness}} &
-    \textcolor{white}{\textbf{n\_layer}} &
-    \textcolor{white}{\textbf{n\_params}} \\
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{tempo (s)}} \\
     \midrule
-    50       & 75.56\% & 74.30 & 1 & 251 \\
+    100   & 53.72\%  & 96.6 \\
     \rowcolor{rowgray}
-    150      & 90.00\% & 88.75 & 1 & 251 \\
-    300      & 92.22\% & 91.13 & 1 & 219 \\
+    250   & 78.33\%  & 96.8 \\
+    500   & 88.06\%  & 100.3 \\
     \rowcolor{rowgray}
-    Baseline & 70.00\% & ---   & 2 & --- \\
+    1000  & 91.44\%  & 129.3 \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{img/test_epochs.png}
-    \caption{Evoluzione della fitness e accuracy al variare del numero di epoche.}
-    \label{fig:epochs}
-\end{figure}
+\textbf{Osservazioni.}
+Con 100 epoche la \texttt{test\_accuracy} è $53.72\%$ — appena meglio di
+un classificatore casuale su $10$ classi ($10\%$). La rete non ha avuto
+tempo di convergere e il segnale di fitness è completamente inutilizzabile.
+A 500 epoche si ottiene $88.06\%$ con un overhead di soli $4$ secondi
+rispetto a 250: il salto è enorme. Da 500 a 1000 epoche il guadagno è di
+$+3.4$ punti percentuali ma il tempo cresce del $29\%$ (rendimenti
+decrescenti).
 
-\noindent\textbf{Osservazioni principali:}
+\textbf{Scelta finale: \fnt{epochs = 500}.} Punto di massimo rendimento
+marginale.
 
-\textbf{Con 50 epoche} la backpropagation non converge: i pesi restano quasi
-casuali e la fitness non è informativa. Il GA non riesce a distinguere
-architetture buone da cattive e non evolve efficacemente.
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 2 — Numero di valutazioni $K$}
+% ─────────────────────────────────────────────────────────────
 
-\textbf{Da 150 a 300 epoche} il miglioramento è solo +2.22\% a fronte di un
-raddoppio del tempo totale di esecuzione ($20 \times 3 \times 300 \times 30
-= 540.000$ training). Caso classico di \textbf{rendimenti decrescenti}.
-
-\textit{Valore ottimale: \textbf{epochs = 150}}
-
-% ────────────────────────────────────────────────────────────
-\subsection{Test 4 — Learning Rate}
-% ────────────────────────────────────────────────────────────
+\textbf{Ipotesi.} La fitness è la media di $K$ run indipendenti con seed
+diversi. $K$ basso $\Rightarrow$ stima rumorosa. $K$ alto $\Rightarrow$
+stima stabile ma ogni generazione costa $K$ volte di più.
 
 \begin{center}
-\begin{tabular}{lccccc}
+\begin{tabular}{lcc}
     \toprule
     \rowcolor{headerblue}
-    \textcolor{white}{\textbf{learning\_rate}} &
-    \textcolor{white}{\textbf{best\_accuracy}} &
-    \textcolor{white}{\textbf{best\_fitness}} &
-    \textcolor{white}{\textbf{n\_layer}} &
-    \textcolor{white}{\textbf{n\_params}} \\
+    \textcolor{white}{\textbf{K}} &
+    \textcolor{white}{\textbf{mean\_test}} &
+    \textcolor{white}{\textbf{std\_test}} \\
     \midrule
-    0.001    & 60.00\% & 59.35 & 1 & 131 \\
+    1   & 85.61\%   & 1.78\%   \\
     \rowcolor{rowgray}
-    0.010    & 90.00\% & 85.36 & 2 & 928 \\
-    0.050    & 96.67\% & 95.65 & 1 & 203 \\
+    3   & 85.70\%   & 0.93\%   \\
+    5   & 86.45\%   & 1.64\%   \\
     \rowcolor{rowgray}
-    Baseline & 70.00\% & ---   & 2 & --- \\
+    10  & 86.86\%   & 0.79\%   \\
+    20  & 86.78\%   & 0.93\%   \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{img/test_learning_rate.png}
-    \caption{Evoluzione della fitness e accuracy al variare del learning rate.}
-    \label{fig:lr}
-\end{figure}
+\textbf{Osservazioni.}
+Con $K=1$ la deviazione standard sulla \texttt{test\_accuracy} (calcolata
+su 5 seed diversi) è $1.78\%$: una rete può ricevere una valutazione
+falsamente alta o bassa per pura casualità del seed. Con $K=3$ la
+deviazione si dimezza a $0.93\%$ a costo solo triplicato. Da $K=3$ a
+$K=10$ la \texttt{std} scende a $0.79\%$, miglioramento marginale di
+$0.14$ punti che non giustifica il triplicarsi del costo.
 
-\noindent\textbf{Osservazioni principali:}
+\textbf{Scelta finale: $\bm{K=3}$.} Dimezza il rumore di valutazione a
+costo computazionale ragionevole.
 
-\textbf{Il learning rate è il parametro più critico} dell'intero sistema:
-la differenza tra caso peggiore e migliore è di 36.67 punti percentuali
-di accuracy, il range più ampio tra tutti i test.
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 3 — Learning rate}
+% ─────────────────────────────────────────────────────────────
 
-\textbf{Con lr=0.001} il GA non supera la baseline: la rete non converge in
-150 epoche, la fitness è rumore casuale e il GA non può evolvere.
-
-\textbf{Con lr=0.05} si ottiene il miglior risultato in assoluto: 96.67\%
-con 1 solo layer e 203 parametri.
-
-\textbf{Rischio di divergenza}: lr troppo alto può causare oscillazioni su
-problemi più complessi --- i passi di aggiornamento sono così grandi che i
-pesi ``saltano'' oltre il minimo della funzione di errore.
-
-\textbf{Parallelismo con le epoche}: learning rate e numero di epoche sono
-parametri complementari. Entrambi controllano la convergenza:
-\[
-    \text{convergenza} = f(\text{lr},\; \text{epochs})
-\]
-Un lr basso può essere compensato da più epoche, ma al costo del tempo.
-
-\textit{Valore ottimale: \textbf{learning\_rate = 0.05}}
-
-\newpage
-
-% ════════════════════════════════════════════════════════════
-\section{Discussione e Conclusioni}
-% ════════════════════════════════════════════════════════════
-
-% ────────────────────────────────────────────────────────────
-\subsection{Analisi Complessiva}
-% ────────────────────────────────────────────────────────────
-
-Il GA supera la baseline in quasi tutte le configurazioni testate. Il risultato
-migliore in assoluto --- 96.67\% di accuracy con lr=0.05 --- è
-significativamente superiore alla baseline del 70\%. Il GA tende a trovare
-architetture con 1 solo hidden layer quando la penalità è attiva, confermando
-che Iris è linearmente quasi separabile e non richiede architetture profonde.
-
-La tabella seguente riassume i valori ottimali identificati:
+\textbf{Ipotesi.} LR troppo basso $\Rightarrow$ la rete non converge in
+500 epoche; LR troppo alto $\Rightarrow$ oscillazioni o instabilità
+numerica.
 
 \begin{center}
 \begin{tabular}{lll}
     \toprule
     \rowcolor{headerblue}
-    \textcolor{white}{\textbf{Parametro}} &
-    \textcolor{white}{\textbf{Valore ottimale}} &
-    \textcolor{white}{\textbf{Motivazione}} \\
+    \textcolor{white}{\textbf{learning\_rate}} &
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{architettura trovata}} \\
     \midrule
-    mutation\_rate & 0.20    & Miglior compromesso esplorazione/sfruttamento \\
+    0.001  & 38.15\%  & [(63, relu)]                \\
     \rowcolor{rowgray}
-    lambda\_       & 0.00005 & Riduce complessità senza sacrificare accuracy  \\
-    epochs         & 150     & Convergenza affidabile, tempo accettabile      \\
+    0.005  & 81.48\%  & [(64, relu)]                \\
+    0.01   & 87.31\%  & [(50, leaky\_relu)]         \\
     \rowcolor{rowgray}
-    learning\_rate & 0.05    & Convergenza rapida in 150 epoche               \\
+    0.05   & 90.65\%  & [(24, relu)]                \\
+    0.1    & 90.74\%  & [(24, sigmoid)]             \\
     \bottomrule
 \end{tabular}
 \end{center}
 
-% ────────────────────────────────────────────────────────────
-\subsection{Limiti del Progetto}
-% ────────────────────────────────────────────────────────────
-
+\textbf{Osservazioni.}
 \begin{itemize}
-    \item \textbf{Generalizzabilità}: le architetture ottimali trovate sono
-          specifiche per Iris. Su dataset più complessi il GA richiederebbe
-          più generazioni e popolazione più grande.
-    \item \textbf{Variabilità}: i risultati variano tra run diverse a causa
-          della casualità. Per risultati affidabili servirebbero multiple run
-          con media e deviazione standard.
-    \item \textbf{Ottimizzatore}: la backpropagation usa SGD puro senza
-          ottimizzatori moderni (Adam, RMSprop) che garantirebbero convergenza
-          più rapida e stabile.
-    \item \textbf{Derivata Softmax}: l'approssimazione diagonale del Jacobiano
-          potrebbe essere limitante su problemi più complessi.
+    \item Con $\eta = 0.001$ la rete non converge in $500$ epoche
+          ($38.15\%$ è poco più di un classificatore casuale): i passi di
+          gradient descent sono troppo piccoli.
+    \item Con $\eta = 0.05$ e $\eta = 0.1$ si ottiene accuracy quasi
+          identica, ma con $\eta=0.1$ il GA seleziona un'architettura con
+          \fnt{sigmoid}: questa funzione satura facilmente quando la LR è
+          alta, introducendo instabilità nei test successivi.
+    \item Con $\eta = 0.05$ il GA trova \fnt{[(24, relu)]} in modo stabile
+          e riproducibile.
 \end{itemize}
 
-% ────────────────────────────────────────────────────────────
-\subsection{Sviluppi Futuri}
-% ────────────────────────────────────────────────────────────
+\begin{concetto}[il learning rate è il parametro più critico]
+Su tutti i parametri testati, il learning rate produce la differenza più
+ampia tra caso peggiore e caso migliore (oltre $50$ punti percentuali!).
+È il parametro su cui si gioca tutto: una scelta sbagliata rende il GA
+completamente inutile, perché il segnale di fitness diventa rumore puro.
+\end{concetto}
+
+\textbf{Scelta finale: \fnt{learning\_rate = 0.05}.} Massima accuracy
+stabile con architettura più snella.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 4 — Penalità di complessità $\lambda$}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} $\lambda = 0$ $\Rightarrow$ il GA seleziona reti grandi
+(overfitting sul validation, gap val/test elevato). $\lambda$ alto
+$\Rightarrow$ reti minuscole con accuracy insufficiente.
+
+\begin{center}
+\begin{tabular}{lccl}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{$\lambda$}} &
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{n\_params}} &
+    \textcolor{white}{\textbf{architettura}} \\
+    \midrule
+    0.0  & 90.65\%  & 1810   & [(24, relu)]            \\
+    \rowcolor{rowgray}
+    0.01 & 90.65\%  & 1810   & [(24, relu)]            \\
+    0.05 & 90.65\%  & 1810   & [(24, relu)]            \\
+    \rowcolor{rowgray}
+    0.1  & 88.80\%  & 1135   & [(15, leaky\_relu)]     \\
+    0.2  & 86.20\%  &  760   & [(10, relu)]            \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+\begin{itemize}
+    \item Da $\lambda = 0$ a $\lambda = 0.05$ la \texttt{test\_accuracy}
+          è identica e la stessa architettura viene selezionata. La
+          penalità c'è ma non è abbastanza forte da distorcere la
+          scelta.
+    \item Da $\lambda = 0.1$ in poi la \texttt{test\_accuracy} cala
+          ($-1.85\%$, poi $-4.45\%$) perché il GA preferisce reti troppo
+          piccole.
+\end{itemize}
+
+\textbf{Scelta finale: $\bm{\lambda = 0.05}$.} Mantiene tutta l'accuracy
+disponibile e introduce un incentivo alla semplicità che agisce sui casi
+borderline (es. quando due architetture hanno accuracy molto simile,
+quella con meno parametri viene preferita).
+
+\begin{domanda}
+\textit{``Perché penalità logaritmica e non lineare?''}\\
+Con la penalità lineare $\lambda \cdot N_{\text{params}}$ il valore
+ottimale di $\lambda$ dipende dalla scala assoluta delle reti generate.
+Una stessa $\lambda$ su una rete da 100 parametri quasi non fa nulla,
+sulla stessa rete a 10000 parametri annienta tutto. Con $\log_{10}$ il
+fattore di crescita della penalità è mite (passare da 100 a 10000
+parametri aumenta la penalità solo di $2$), rendendo $\lambda$ stabile
+indipendentemente dalla scala.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 5 — Mutation rate}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} Rate basso $\Rightarrow$ il GA si appoggia solo al
+crossover, rischia ottimi locali. Rate alto $\Rightarrow$ il GA si riduce
+a ricerca casuale.
+
+\begin{center}
+\begin{tabular}{lccl}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{$p_m$}} &
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{n\_params}} &
+    \textcolor{white}{\textbf{architettura}} \\
+    \midrule
+    0.0  & 89.07\%  & 2110  & [(28, leaky\_relu)] \\
+    \rowcolor{rowgray}
+    0.05 & 89.07\%  & 2110  & [(28, leaky\_relu)] \\
+    0.1  & 90.19\%  & 1885  & [(25, relu)]        \\
+    \rowcolor{rowgray}
+    0.2  & 90.65\%  & 1810  & [(24, relu)]        \\
+    0.4  & 90.19\%  & 1885  & [(25, relu)]        \\
+    \rowcolor{rowgray}
+    0.8  & 91.11\%  & 1735  & [(23, relu)]        \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+\begin{itemize}
+    \item Con $p_m = 0$ e $p_m = 0.05$ il GA converge sulla stessa
+          architettura ($28$ neuroni, leaky\_relu): senza mutazione
+          significativa, il crossover da solo rimane intrappolato in un
+          ottimo locale.
+    \item $p_m = 0.2$ è il picco tra i valori \emph{stabili}.
+    \item $p_m = 0.8$ produce una \texttt{test\_accuracy} apparentemente
+          migliore, ma con l'$80\%$ dei geni mutati ad ogni passo il GA
+          non costruisce più sull'evoluzione precedente: i risultati
+          sono altamente dipendenti dal seed e poco riproducibili.
+\end{itemize}
+
+\textbf{Scelta finale: $\bm{p_m = 0.2}$.} Il rate più conservativo che
+raggiunge il picco di \texttt{test\_accuracy} con comportamento stabile.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 6 — Dimensione della popolazione}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} Popolazione piccola $\Rightarrow$ ricerca ristretta,
+convergenza prematura. Popolazione grande $\Rightarrow$ esplorazione
+ampia ma con generazioni fissate ogni individuo viene raffinato meno.
+
+\begin{center}
+\begin{tabular}{lccc}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{population}} &
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{gap val$-$test}} &
+    \textcolor{white}{\textbf{n\_params}} \\
+    \midrule
+    5    & 87.69\%  & 3.33\%  & 1585 \\
+    \rowcolor{rowgray}
+    10   & 88.98\%  & 1.85\%  & 1510 \\
+    20   & 90.65\%  & 0.83\%  & 1810 \\
+    \rowcolor{rowgray}
+    30   & 89.07\%  & 2.41\%  & 2110 \\
+    50   & 89.63\%  & 1.30\%  & 1360 \\
+    \rowcolor{rowgray}
+    70   & 90.00\%  & 1.67\%  & 1960 \\
+    100  & 88.80\%  & 0.94\%  & 1135 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+La relazione \emph{non} è monotona: c'è un picco netto a popolazione
+$=20$, sia in \texttt{test\_accuracy} che in gap val/test minimo. Il gap
+val/test minimo a $0.83\%$ è una doppia conferma --- non è un artefatto
+della validation set.
+
+Con popolazioni grandi e numero di generazioni fisso, ogni generazione
+esplora più candidati ma li raffina meno (la pressione selettiva è
+diluita). Con popolazioni piccole, manca diversità per uscire da ottimi
+locali. Il punto di equilibrio è $20$.
+
+\textbf{Scelta finale: \fnt{population = 20}.}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 7 — Numero di generazioni}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} Poche generazioni $\Rightarrow$ il GA non ha avuto
+tempo di convergere. Troppe $\Rightarrow$ costo computazionale inutile
+perché la fitness è già stabile.
+
+\begin{center}
+\begin{tabular}{lcl}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{generations}} &
+    \textcolor{white}{\textbf{test\_accuracy}} &
+    \textcolor{white}{\textbf{architettura}} \\
+    \midrule
+    5    & 88.61\%  & [(52, relu)] \\
+    \rowcolor{rowgray}
+    10   & 90.65\%  & [(24, relu)] \\
+    20   & 90.65\%  & [(24, relu)] \\
+    \rowcolor{rowgray}
+    30   & 90.65\%  & [(24, relu)] \\
+    50   & 90.65\%  & [(24, relu)] \\
+    \rowcolor{rowgray}
+    70   & 90.65\%  & [(24, relu)] \\
+    100  & 90.65\%  & [(24, relu)] \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+La convergenza è sorprendentemente rapida: già a $\text{gen} = 10$ il GA
+trova la stessa architettura ottimale che trova anche a $\text{gen} = 100$.
+Il salto da $5$ a $10$ è l'unico significativo ($+2.04\%$); da $10$ in poi
+il risultato è identico.
+
+\textbf{Scelta finale: \fnt{generations = 50}.} Ampio margine di sicurezza
+sul punto di convergenza reale ($\text{gen}=10$), senza sprecare tempo
+oltre.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 8 — Generalizzabilità su dataset diversi}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} La configurazione ottimale trovata su Digits non è
+sovra-specializzata per quel dataset, ma funziona ragionevolmente anche
+su altri.
+
+\begin{center}
+\begin{tabular}{lccccl}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{dataset}} &
+    \textcolor{white}{\textbf{feat.}} &
+    \textcolor{white}{\textbf{cl.}} &
+    \textcolor{white}{\textbf{GA test\%}} &
+    \textcolor{white}{\textbf{Baseline\%}} &
+    \textcolor{white}{\textbf{vince?}} \\
+    \midrule
+    iris           &  4 &  3 & 92.22\%   & 94.44\%   & no    \\
+    \rowcolor{rowgray}
+    wine           & 13 &  3 & 100.00\%  & 100.00\%  & pari  \\
+    breast\_cancer & 30 &  2 & 95.61\%   & 96.20\%   & no    \\
+    \rowcolor{rowgray}
+    digits         & 64 & 10 & 90.65\%   & 58.33\%   & sì (+32\%) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+\begin{itemize}
+    \item Su \emph{Iris} e \emph{Breast Cancer} la baseline batte il GA
+          di pochi decimi di punto. Sono problemi semplici, e la baseline
+          (con architettura fissa $[(8,\text{leaky\_relu}), (8,\text{leaky\_relu})]$,
+          139 parametri) è già abbastanza espressiva. Il GA trova
+          architetture leggermente diverse ma non significativamente
+          migliori.
+    \item Su \emph{Wine} entrambi raggiungono il $100\%$: dataset
+          ampiamente risolto.
+    \item Su \emph{Digits} il GA batte la baseline di $32$ punti
+          percentuali. Su problemi complessi (molte feature, molte classi,
+          molti dati) la ricerca automatica dell'architettura porta valore
+          enorme.
+\end{itemize}
+
+\begin{concetto}[la NAS aggiunge valore quando il problema è non triviale]
+Su dataset semplici, una rete fissa ragionevole è già adeguata: la NAS
+non guadagna molto. Su dataset complessi, dove lo spazio delle
+architetture utili è grande e non ovvio, la ricerca automatica può fare
+una differenza enorme. Questo è anche il motivo per cui la NAS è
+particolarmente utile in applicazioni industriali (visione artificiale,
+NLP) dove i problemi sono complessi.
+\end{concetto}
+
+\textbf{Osservazione di rilievo.} Su \emph{tutti} i dataset il GA trova
+architetture a un solo hidden layer. Non è un limite del GA: è una
+risposta ai dati. Per questi problemi un singolo layer nascosto è
+sufficiente, e la penalità $\lambda$ disincentiva la profondità inutile.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 9A — Bias ottimistico val vs test}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} Il GA seleziona l'architettura migliore in base
+all'accuracy sul \emph{validation} set. Riportare quella stessa accuracy
+come ``risultato'' del GA è ottimistico per costruzione.
+
+\begin{center}
+\begin{tabular}{lc}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{metrica}} &
+    \textcolor{white}{\textbf{valore (media su 10 seed)}} \\
+    \midrule
+    \texttt{val\_accuracy}     & 91.33\%  \\
+    \rowcolor{rowgray}
+    \texttt{test\_accuracy}    & 87.01\%  \\
+    \textbf{gap medio}         & \textbf{4.33\%} \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+Il gap di $4.33\%$ è sistematico. Su 10 seed diversi varia da $1.39\%$ a
+$9.35\%$, ma è sempre positivo (la val è sempre più alta della test).
+Conclusione: la \texttt{test\_accuracy} è la stima onesta da riportare;
+la \texttt{best\_accuracy} (val) è ottimistica per costruzione.
+
+\begin{concetto}[lezione operativa]
+Quando si fa NAS o tuning di iperparametri tramite validation set, è
+\emph{obbligatorio} avere un test set separato per la stima finale.
+Riportare la metrica usata per scegliere significa riportare il caso
+fortunato, non la performance attesa.
+\end{concetto}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Test 9B — Leakage da preprocessing}
+% ─────────────────────────────────────────────────────────────
+
+\textbf{Ipotesi.} Calcolare le statistiche dello \fnt{StandardScaler}
+sull'intero dataset (train + val + test) anziché solo sul training
+introduce leakage e gonfia la stima.
+
+\begin{center}
+\begin{tabular}{lc}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{scenario}} &
+    \textcolor{white}{\textbf{test\_accuracy}} \\
+    \midrule
+    scaler corretto (solo train)   & 75.33\% \\
+    \rowcolor{rowgray}
+    scaler su tutto il dataset     & 74.00\% \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Osservazioni.}
+In questo caso specifico, il leakage non ha gonfiato i risultati (anzi
+li ha leggermente peggiorati). Il motivo è che il dataset usato per
+questo test (Iris) è piccolo e omogeneo: la distribuzione dei dati è
+molto simile in ciascuno split, quindi le statistiche calcolate
+sull'intero dataset coincidono praticamente con quelle calcolate solo sul
+training.
+
+Su dataset più grandi o con distribuzione eterogenea il leakage sarebbe
+più evidente: l'esperimento documenta il fatto che la \emph{prassi}
+(scaler solo sul training) va comunque adottata sempre, anche quando
+nei casi piccoli non sembra fare differenza.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Riepilogo della configurazione ottimale}
+% ─────────────────────────────────────────────────────────────
+
+\begin{center}
+\begin{tabular}{ll>{\raggedright\arraybackslash}p{6.5cm}}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{Parametro}} &
+    \textcolor{white}{\textbf{Valore}} &
+    \textcolor{white}{\textbf{Motivazione}} \\
+    \midrule
+    epochs          & 500    & Minimo per segnale fitness affidabile (rendimenti decrescenti oltre)  \\
+    \rowcolor{rowgray}
+    K               & 3      & Dimezza la varianza di K=1 a costo minimo                            \\
+    learning\_rate  & 0.05   & Picco di test\_accuracy con convergenza stabile (più critico di tutti) \\
+    \rowcolor{rowgray}
+    lambda          & 0.05   & Penalizza la complessità senza ridurre l'accuracy                     \\
+    mutation\_rate  & 0.2    & Picco stabile, evita ottimi locali senza diventare ricerca casuale    \\
+    \rowcolor{rowgray}
+    population      & 20     & Picco di test\_accuracy + minimo gap val/test                         \\
+    generations     & 50     & Ampio margine sul punto di convergenza reale (gen=10)                 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Risultato finale su Digits:} architettura \texttt{[(24, relu)]} —
+1 hidden layer, $24$ neuroni, ReLU. \\
+\textbf{Test accuracy:} $90.65\%$ \;vs\; baseline $58.33\%$
+($+32.32$ punti percentuali).
+
+\begin{riassunto}
+\begin{itemize}
+    \item Il \emph{learning rate} è di gran lunga il parametro più critico: una scelta sbagliata rende il GA inutile.
+    \item Il numero di \emph{epoche} controlla la qualità del segnale di fitness; troppo poche $\Rightarrow$ rumore puro.
+    \item $K$ (numero di valutazioni) e $\lambda$ (penalità) controllano rispettivamente rumore e complessità.
+    \item \emph{population} e \emph{generations} contano meno di quanto ci si aspetterebbe: il GA converge presto.
+    \item Il GA aggiunge valore reale solo su dataset \emph{complessi}: su Iris la baseline è già adeguata.
+    \item Test set indispensabile per stima onesta: la val accuracy è ottimistica di $\sim 4\%$ in media.
+\end{itemize}
+\end{riassunto}
+
+\newpage
+
+% =============================================================
+\section{Discussione e Conclusioni}
+% =============================================================
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Cosa il progetto dimostra}
+% ─────────────────────────────────────────────────────────────
+
+Il progetto dimostra empiricamente, su un dataset non triviale, che
+\textbf{un Algoritmo Genetico è uno strumento efficace per la Neural
+Architecture Search}. Sul dataset Digits il GA scopre automaticamente
+un'architettura ($[(24, \text{relu})]$) che batte una baseline manuale
+ragionevole di $32$ punti percentuali. La ricerca converge in poche
+generazioni e produce architetture compatte (un solo layer nascosto), un
+risultato non ovvio a priori.
+
+Più in generale, il progetto mostra che:
+\begin{itemize}
+    \item È possibile combinare due paradigmi diversi dell'AI (ricerca
+          evolutiva ed apprendimento supervisionato) in un sistema
+          coerente.
+    \item L'\emph{ottimizzazione annidata} (GA sopra, backpropagation
+          sotto) funziona purché ognuno dei due livelli sia configurato
+          correttamente.
+    \item Il principio di \emph{regolarizzazione} via penalità di
+          complessità mantiene le architetture trovate snelle e
+          robuste, riducendo l'overfitting sul validation set.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Limiti del progetto}
+% ─────────────────────────────────────────────────────────────
 
 \begin{itemize}
-    \item Validazione su dataset più complessi (es. MNIST, Wine Quality)
-    \item Implementazione del Jacobiano completo per la Softmax
-    \item Aggiunta di Dropout per ridurre il rischio di overfitting
-    \item Implementazione di Early Stopping nella valutazione della fitness
-    \item Implementazione di Adam come ottimizzatore alternativo a SGD
-    \item Esposizione di K come parametro configurabile del costruttore
-    \item Includere il learning rate all'interno del cromosoma di ogni individuo. Quindi l'obiettivo si sposterebbe nella ricerca dell'architettura e del miglior learning rate con cui utilizzarla: un architettura complessa potrebbe beneficiare di un learning rate molto basso a differenza di un'architettura molto semplice.
-    
-    In questo progetto si è scelto di usare un algoritmo genetico per trovare automaticamente la migliore architettura di rete neurale in funzione di un dataset specifico. Il progetto può essere interpretato come un caso particolare di Neural Architecture Search, in cui lo spazio di ricerca è definito da numero di layer, neuroni per layer e funzioni di attivazione. \\
-    Potrebbe venire naturale chiedersi se abbia senso includere anche il learning rate nel cromosoma, trattandolo come un ulteriore iperparametro da ottimizzare. Concettualmente sarebbe corretto — architetture diverse potrebbero convergere meglio con learning rate diversi. Tuttavia questa scelta presenta due criticità: da un lato aumenta la dimensionalità dello spazio di ricerca, rendendo più difficile la convergenza del GA con lo stesso numero di generazioni e popolazione; dall'altro mescola due livelli concettualmente distinti, l'architettura della rete e il processo di training, rendendo il sistema meno interpretabile. \\
-    Il progetto è stato sviluppato con l'obiettivo specifico di ottimizzare l'architettura, mantenendo il learning rate come iperparametro fisso. L'inclusione del learning rate nel cromosoma rappresenta tuttavia una direzione interessante per sviluppi futuri.
+    \item \textbf{Generalizzabilità del risultato.} Le architetture
+          ottimali trovate sono \emph{specifiche per il dataset} su cui
+          sono state cercate. Il \emph{metodo} è generale; il
+          \emph{risultato} no.
+    \item \textbf{Spazio di ricerca limitato.} Il GA cerca solo nel
+          sottospazio delle reti feed-forward MLP. Architetture
+          convoluzionali, ricorrenti o con \emph{skip connections} non
+          sono nello spazio di ricerca. Questo è una limitazione di
+          implementazione, non concettuale.
+    \item \textbf{Iperparametri di addestramento esclusi.} Learning rate
+          ed epochs sono iperparametri della backpropagation, fissati
+          all'esterno del GA. Una versione più ambiziosa potrebbe
+          includerli nel cromosoma.
+    \item \textbf{Costo computazionale.} L'unica vera ``commodità'' del
+          progetto. Su un singolo dataset con la configurazione finale, una
+          run completa richiede dell'ordine dei minuti su CPU moderna.
+          Per dataset molto grandi (ImageNet) approcci più sofisticati
+          (NAS basato su reinforcement learning, weight sharing) sono
+          necessari.
+    \item \textbf{Variabilità tra run.} Anche con $K=3$, esecuzioni con
+          seed diversi possono trovare architetture leggermente diverse.
+          Il sistema è stocastico per natura: non c'è un'unica ``risposta
+          giusta'' a ogni esecuzione.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Sviluppi futuri}
+% ─────────────────────────────────────────────────────────────
+
+\begin{itemize}
+    \item \textbf{Estendere il cromosoma.} Includere learning rate,
+          dimensione del batch, dropout rate come geni. Il GA
+          ottimizzerebbe simultaneamente architettura e training.
+    \item \textbf{Operatori di crossover più intelligenti.} Crossover
+          consapevoli della semantica (es. scambiare layer simili in
+          posizione simile) potrebbero accelerare la convergenza.
+    \item \textbf{Funzione di fitness multi-obiettivo.} Invece di
+          combinare accuracy e complessità in un'unica fitness scalare,
+          esplorare il fronte di Pareto con un GA multi-obiettivo
+          (NSGA-II).
+    \item \textbf{Fitness stimata.} Il collo di bottiglia è il training
+          completo per ogni valutazione. Un \emph{fitness predictor} (a
+          sua volta una rete neurale) potrebbe stimare la fitness senza
+          training, accelerando l'evoluzione di ordini di grandezza.
+    \item \textbf{Spazi di ricerca più ricchi.} Estendere il GA a gestire
+          architetture non lineari (skip connection, branching).
 \end{itemize}
 
 \newpage
 
-% ════════════════════════════════════════════════════════════
+% =============================================================
+\section{Domande tipo orale (con risposte ragionate)}
+% =============================================================
+
+Questa sezione raccoglie le domande più probabili per l'orale, con
+risposte sintetiche ma complete. Le domande sono organizzate per
+argomento.
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Sul progetto in generale}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Spiegami il tuo progetto in due minuti.''}\\
+Ho implementato un sistema di Neural Architecture Search: un Algoritmo
+Genetico cerca automaticamente la migliore architettura di una rete
+neurale (numero di layer, neuroni, funzioni di attivazione) per un dato
+dataset. Ogni architettura candidata viene valutata addestrandola con
+backpropagation e misurando l'accuratezza sul validation set, penalizzata
+per la complessità della rete. Sul dataset Digits il sistema ha trovato
+un'architettura con un singolo layer da $24$ neuroni ReLU, $90.65\%$ di
+accuracy sul test set, contro il $58.33\%$ di una baseline manuale. Sia la
+rete che il GA sono scritti da zero in numpy.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Perché hai scelto un GA invece di altri metodi di NAS?''}\\
+Per tre motivi: (1) il GA è naturale per spazi di ricerca discreti come
+quello delle architetture; (2) gestisce nativamente cromosomi di
+lunghezza variabile (architetture con numero di layer diverso); (3) è
+algoritmicamente semplice da implementare da zero, coerente con
+l'obiettivo didattico del progetto. Alternative come grid search sono
+esponenzialmente costose, e reinforcement learning per NAS richiede
+infrastruttura molto più pesante.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Quali sono le componenti principali del codice?''}\\
+Due moduli: \texttt{neural\_network} contiene la classe della rete con
+forward, backward e una libreria di funzioni di attivazione;
+\texttt{genetic\_algorithm} contiene la classe del GA con i metodi
+privati per fitness, selezione, crossover, mutazione, e il metodo
+pubblico \texttt{run()} che orchestra il ciclo evolutivo. C'è poi un
+\texttt{main.py} che fa preprocessing del dataset, esegue il GA e produce
+i grafici, e una serie di script di test che variano un parametro alla
+volta per l'analisi di sensibilità.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Su reti neurali}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Cos'è la backpropagation, in poche frasi?''}\\
+È l'algoritmo che calcola il gradiente della loss rispetto a tutti i
+pesi della rete, applicando la regola della catena layer per layer
+all'indietro a partire dall'output. Una volta ottenuto il gradiente, i
+pesi vengono aggiornati nella direzione opposta tramite gradient descent.
+Si chiama \emph{back}-propagation perché il calcolo procede
+dall'\emph{output verso l'input}, riusando i risultati intermedi
+salvati durante il forward pass per essere efficiente.
+\end{domanda}
+
+\begin{domanda}
+\textit{``A cosa serve la funzione di attivazione non lineare?''}\\
+A rendere la rete capace di rappresentare funzioni non lineari. Senza
+attivazioni non lineari, una rete con $N$ layer è matematicamente
+equivalente a una rete con un singolo layer lineare: la composizione di
+trasformazioni lineari è lineare. È la non linearità a dare alla rete il
+suo potere rappresentativo (universal approximation theorem).
+\end{domanda}
+
+\begin{domanda}
+\textit{``Perché si usa softmax in output e non sigmoid?''}\\
+La softmax produce una distribuzione di probabilità sulle classi (i
+valori sommano a $1$): è il modo naturale di esprimere ``il modello
+crede che questo input appartenga alla classe $i$ con probabilità $p_i$''.
+Sigmoid produrrebbe valori indipendenti per ogni classe, non collegati
+fra loro. Per classificazione binaria si usa sigmoid; per multiclasse
+softmax.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Cos'è il vanishing gradient e come si previene?''}\\
+È il fenomeno per cui i gradienti diventano sempre più piccoli scendendo
+verso i layer iniziali della rete, fino a impedirne l'apprendimento.
+Cause: funzioni di attivazione che saturano (sigmoid, tanh) e cattiva
+inizializzazione dei pesi. Si previene usando ReLU/Leaky ReLU (che non
+saturano per input positivi), inizializzazione di He o Xavier (che
+mantiene la varianza dei segnali costante attraverso i layer), e
+gradient clipping (protegge dal caso opposto, exploding gradient).
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Su algoritmi genetici}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Spiegami il ciclo di un algoritmo genetico.''}\\
+Si parte da una popolazione casuale di soluzioni candidate. A ogni
+generazione: (1) si calcola la fitness di ogni individuo; (2) si
+selezionano i genitori (tipicamente con torneo); (3) i genitori si
+combinano via crossover producendo dei figli; (4) i figli vengono
+mutati con probabilità $p_m$; (5) la nuova popolazione sostituisce la
+vecchia, eventualmente preservando il migliore con elitismo. Si itera
+finché la fitness converge o si raggiunge un numero massimo di
+generazioni.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Cos'è l'elitismo e perché è utile?''}\\
+È la tecnica di copiare il migliore individuo della generazione corrente
+nella nuova senza farlo passare per crossover/mutazione. Garantisce che
+la fitness massima non possa peggiorare da una generazione all'altra:
+quello che si è trovato non si perde più. Il costo è una piccola
+riduzione di diversità (uno slot in meno per nuovi individui), ma con
+popolazioni di $20$+ è trascurabile.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Esplorazione vs sfruttamento --- come si bilanciano nel tuo GA?''}\\
+Diversi parametri controllano questo trade-off. Il \texttt{mutation\_rate}
+($0.2$) inietta abbastanza casualità da evitare ottimi locali ma non
+abbastanza da degradare il GA in ricerca casuale. Il \texttt{tournament\_size}
+($5$) è abbastanza piccolo da dare chance anche agli individui mediocri
+(esplorazione) ma abbastanza grande da far emergere i migliori
+(sfruttamento). L'\emph{elitismo} aggiunge sfruttamento puro. La
+\emph{popolazione} di $20$ individui è abbastanza ampia da mantenere
+diversità senza diluire la pressione selettiva.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Cosa succede se aumenti molto il tournament size?''}\\
+Aumenta la pressione selettiva: i migliori vincono quasi sempre i
+tornei, gli individui mediocri quasi mai. Il GA converge più rapidamente
+ma su un ottimo (anche locale): la popolazione perde diversità in fretta
+e il GA smette di esplorare. È l'opposto della ricerca casuale --- una
+``hill climbing su steroidi''.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Su NAS e fitness}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Perché K = 3 valutazioni per ogni individuo?''}\\
+Perché i pesi della rete sono inizializzati casualmente a ogni
+valutazione, e con SGD a campioni casuali il training stesso è
+stocastico. Conseguenza: la stessa architettura, valutata due volte di
+seguito, può dare accuracy diverse di $1$--$2\%$ per pura fortuna.
+Mediare su $K=3$ run dimezza la deviazione standard a costo
+ragionevole. Aumentare $K$ riduce ulteriormente la varianza ma con
+rendimenti decrescenti rapidi.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Perché penalizzi la complessità della rete? Cosa succederebbe senza?''}\\
+Senza penalità il GA tende a far crescere le architetture, perché reti
+più grandi hanno tipicamente accuracy leggermente superiore sul
+validation set (più capacità di adattamento). Questo causa due problemi:
+(1) overfitting sul validation, con gap val/test elevato; (2) reti
+inutilmente costose. La penalità $\lambda \cdot \log_{10}(N_{\text{params}})$
+agisce come regolarizzatore: scoraggia la complessità non giustificata
+da un guadagno sostanziale in accuracy.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Perché la penalità è logaritmica e non lineare?''}\\
+Con la penalità lineare $\lambda \cdot N_{\text{params}}$ il valore
+ottimale di $\lambda$ dipende fortemente dalla scala delle reti generate
+in quella esecuzione: una stessa $\lambda$ non penalizza praticamente
+nulla una rete piccola e annienta una rete grande. Con $\log_{10}$ la
+penalità cresce in modo molto più mite (passare da 100 a 10000
+parametri aumenta il termine solo di $2$), rendendo $\lambda$ stabile
+indipendentemente dalla scala.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Come fai a confrontare reti con architetture diverse?''}\\
+Tramite la fitness. Ogni rete viene valutata con la stessa procedura:
+costruita con i suoi parametri di architettura, addestrata con
+backpropagation per $E$ epoche, valutata in accuracy sul validation set.
+La fitness è poi accuracy meno la penalità $\lambda \cdot
+\log_{10}(N_{\text{params}})$, che permette di confrontare reti di
+dimensioni diverse: una rete piccola con accuracy del $90\%$ può avere
+fitness più alta di una rete grande con accuracy del $92\%$.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Su validazione e leakage}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Differenza tra validation set e test set?''}\\
+Il \emph{validation} si usa \emph{durante} la ricerca, per scegliere fra
+configurazioni alternative. Il \emph{test} si usa \emph{una sola volta}
+alla fine, per stimare onestamente le prestazioni. Se si usa il test set
+durante la ricerca, si introduce data leakage e la stima diventa
+ottimistica. Nel mio progetto: il GA misura la fitness sul validation,
+e solo l'architettura vincitrice viene rivalutata sul test set, da cui
+la metrica finale.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Cos'è il data leakage e come lo eviti?''}\\
+È qualunque situazione in cui informazione del validation/test ``filtra''
+nel processo di training, gonfiando le stime di performance. Le forme
+più tipiche sono: (1) calcolare statistiche di preprocessing (es.
+StandardScaler) sull'intero dataset invece che solo sul training; (2)
+selezionare un modello con il validation e poi riportare la sua accuracy
+sul validation come risultato (bias ottimistico). Lo evito calcolando
+ogni statistica solo sul training, applicandola identica a val/test, e
+riportando come risultato finale solo la \texttt{test\_accuracy}.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Cosa hai trovato col Test 9A sul bias val/test?''}\\
+Su $10$ seed diversi, la val accuracy media è del $91.33\%$ ma la test
+accuracy media è solo $87.01\%$: un gap sistematico di $4.33\%$. Questo
+conferma che la metrica usata per scegliere (validation) non è una
+stima onesta delle prestazioni: è ottimistica per costruzione, perché il
+GA ottimizza per quella metrica specifica.
+\end{domanda}
+
+% ─────────────────────────────────────────────────────────────
+\subsection{Domande di approfondimento}
+% ─────────────────────────────────────────────────────────────
+
+\begin{domanda}
+\textit{``Il GA potrebbe far evolvere anche i pesi della rete?''}\\
+Tecnicamente sì, ma sarebbe enormemente inefficiente. Lo spazio dei
+pesi è continuo e ad altissima dimensionalità (decine di migliaia di
+parametri reali). Il GA è efficiente su spazi discreti e di dimensione
+moderata, mentre la backpropagation, che usa l'informazione del
+gradiente, è ordini di grandezza più rapida sui pesi. La filosofia del
+progetto è usare lo strumento giusto per ciascun livello: GA sui
+parametri discreti (architettura), backpropagation sui pesi continui.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Come potresti migliorare il sistema?''}\\
+Diverse strade. Estendere il cromosoma per includere learning rate ed
+epochs (oggi fissi). Crossover ``intelligenti'' che scambiano layer simili
+in posizione simile. Fitness multi-obiettivo (NSGA-II) per esplorare il
+fronte di Pareto fra accuracy e complessità. Surrogate models per
+stimare la fitness senza training completo, abbattendo il costo. Estendere
+lo spazio di ricerca a topologie non sequenziali (skip connections).
+\end{domanda}
+
+\begin{domanda}
+\textit{``Il tuo GA è collegato alla ricerca locale del libro Russell-Norvig?''}\\
+Sì. Il GA può essere visto come una variante della ricerca locale
+stocastica. Hill climbing tiene un singolo stato e va al successore
+migliore. Simulated annealing aggiunge tolleranza alle mosse
+peggiorative. Local beam search tiene $k$ stati in parallelo. Il GA
+estende il beam search aggiungendo il \emph{crossover}: i nuovi
+candidati possono combinare informazioni da più stati genitori, non
+solo essere successori di uno solo. Aggiunge anche la mutazione, che è
+analoga al rumore casuale di simulated annealing.
+\end{domanda}
+
+\begin{domanda}
+\textit{``Ti aspettavi che il GA trovasse architetture con un solo layer?''}\\
+A priori no. Mi aspettavo architetture più profonde, soprattutto su Digits
+che ha $64$ feature e $10$ classi. Il GA ha invece dimostrato che per
+questi dataset \emph{tabulari} un singolo layer abbastanza ampio è già
+sufficiente: l'extra profondità non aggiunge accuracy ma aggiunge
+parametri, quindi viene scoraggiata dalla penalità $\lambda$. Questo è
+coerente con la letteratura: la profondità è davvero utile quando i dati
+hanno struttura gerarchica (immagini, linguaggio), non altrettanto sui
+dataset tabulari semplici.
+\end{domanda}
+
+\newpage
+
+% =============================================================
 \appendix
-\section{Glossario dei Termini Chiave}
-% ════════════════════════════════════════════════════════════
+\section{Glossario dei termini chiave}
+% =============================================================
 
 \begin{description}
-    \item[Accuratezza (Accuracy)] Percentuale di predizioni corrette sul
-        validation set. Valore tra 0 e 1.
-
-    \item[Backpropagation] Algoritmo per calcolare il gradiente della funzione
-        di loss rispetto ai pesi della rete, propagando l'errore all'indietro
-        layer per layer tramite la regola della catena.
-
-    \item[Baseline] Rete con architettura fissa $[(8,\text{relu}),(8,\text{relu})]$
-        addestrata con backpropagation classica, usata come punto di riferimento
-        per valutare i risultati del GA.
-
-    \item[Classificazione] Problema in cui l'output è una categoria discreta.
-        Contrapposto alla regressione (output continuo).
-
-    \item[Cromosoma] Rappresentazione di una soluzione candidata nel GA:
-        lista di tuple \texttt{(n\_neuroni, funzione\_attivazione)}.
-
-    \item[Crossover] Operatore genetico che combina due genitori per generare
-        un figlio scambiando parti dei cromosomi.
-
-    \item[Data leakage] Uso di informazioni del validation set durante il
-        preprocessing o il training, che porta a stime ottimistiche delle prestazioni.
-
-    \item[Elitismo] Tecnica che copia il miglior individuo nella nuova
-        popolazione, garantendo che la qualità non peggiori tra generazioni.
-
-    \item[Fitness] Misura della qualità di un individuo nel GA:
-        $\text{fitness} = \text{accuracy} - \lambda \cdot N_{\text{params}}$.
-
-    \item[Gradient descent] Algoritmo di ottimizzazione che aggiorna i
-        parametri nella direzione opposta al gradiente della funzione di loss.
-
-    \item[Learning rate ($\eta$)] Iperparametro che controlla la dimensione
-        del passo di aggiornamento dei pesi durante la backpropagation.
-
-    \item[Mutazione] Operatore genetico che introduce variazioni casuali nel
-        cromosoma per mantenere diversità nella popolazione.
-
-    \item[NAS (Neural Architecture Search)] Campo di ricerca che studia
-        l'automazione della progettazione di architetture di reti neurali.
-
-    \item[One-hot encoding] Rappresentazione delle etichette come vettori
-        binari con un solo 1 nella posizione corrispondente alla classe.
-
-    \item[Overfitting] Fenomeno per cui il modello memorizza i dati di
-        training e non generalizza su dati nuovi.
-
-    \item[Penalità di complessità] Termine $\lambda \cdot N_{\text{params}}$
-        sottratto dalla fitness per favorire architetture semplici.
-
-    \item[Pressione selettiva] Intensità con cui gli individui migliori
-        vengono preferiti nella riproduzione.
-
-    \item[Rendimenti decrescenti] Fenomeno per cui ogni unità aggiuntiva
-        di una risorsa contribuisce sempre meno al miglioramento.
-
-    \item[Selezione a torneo] Metodo che estrae K individui casuali e sceglie
-        il migliore tra loro come genitore.
-
-    \item[Softmax] Funzione di attivazione che normalizza un vettore in una
-        distribuzione di probabilità. Usata solo sull'output layer per
-        classificazione multi-classe.
-
-    \item[StandardScaler] Trasformazione che porta ogni feature a media 0 e
-        deviazione standard 1.
-
-    \item[Validation set] Porzione del dataset non usata durante il training,
-        per valutare le prestazioni su dati mai visti.
-
-    \item[Vanishing gradient] Problema per cui i gradienti diventano
-        estremamente piccoli nei \emph{layer iniziali} della rete durante
-        la backpropagation, rallentando o impedendo l'apprendimento di
-        quei layer (tipico di Sigmoid su reti profonde, dove la derivata
-        satura verso 0).
+    \item[Accuracy] Percentuale di predizioni corrette sul set di
+        valutazione. Compresa fra $0$ e $1$ (o $0$ e $100\%$).
+    \item[Architettura] Struttura della rete neurale: numero di layer,
+        neuroni per layer, funzioni di attivazione. È un iperparametro.
+        Nel progetto è il cromosoma del GA.
+    \item[Backpropagation] Algoritmo per calcolare il gradiente della
+        loss rispetto ai pesi della rete, applicando la regola della
+        catena layer per layer all'indietro.
+    \item[Baseline] Modello di riferimento (qui: rete con architettura
+        fissa $[(8,\text{leaky\_relu}),(8,\text{leaky\_relu})]$) usato per
+        capire se il GA sta aggiungendo valore.
+    \item[Bias (di un neurone)] Termine costante $b$ aggiunto alla somma
+        pesata degli input prima dell'attivazione: $f(\bm{w}^\top \bm{x} + b)$.
+    \item[Bias ottimistico val/test] Sovrastima sistematica delle
+        prestazioni quando si riporta come risultato la stessa metrica
+        usata per selezionare il modello.
+    \item[Classificazione] Problema in cui $y$ è una categoria discreta.
+        Metrica naturale: accuracy. Funzione di output: softmax.
+    \item[Cromosoma] Rappresentazione di una soluzione candidata nel GA.
+        Nel progetto: lista di tuple \texttt{(n\_neuroni, funzione)}.
+    \item[Cross-entropy] Loss function per classificazione. La forma
+        categoriale per multiclasse: $-\sum_i y_i \log \hat{y}_i$.
+    \item[Crossover] Operatore genetico che combina due genitori per
+        generare un figlio.
+    \item[Data leakage] Uso involontario di informazione del validation
+        o test set durante il training, che gonfia le stime di
+        performance.
+    \item[Elitismo] Tecnica di copiare il miglior individuo nella
+        generazione successiva senza farlo subire crossover/mutazione.
+    \item[Esplorazione] Capacità del GA di visitare zone nuove dello
+        spazio delle soluzioni. Promossa da mutazione, popolazione
+        grande, tournament size piccolo.
+    \item[Fitness] Misura di qualità di un individuo nel GA. Nel
+        progetto: $\text{accuracy} - \lambda \cdot \log_{10}(N_{\text{params}})$.
+    \item[Forward pass] Calcolo dell'output di una rete a partire da un
+        input.
+    \item[Gene] Elemento atomico di un cromosoma. Nel progetto: una
+        tupla \texttt{(n\_neuroni, funzione)}.
+    \item[Generazione] Una iterazione completa del ciclo evolutivo del GA.
+    \item[Gradient descent] Algoritmo di ottimizzazione che muove i
+        parametri nella direzione opposta al gradiente della loss.
+    \item[Iperparametri] Parametri di un modello che non vengono appresi
+        dai dati ma fissati prima del training (learning rate, $\lambda$,
+        ecc.). L'architettura è un iperparametro.
+    \item[Learning rate ($\eta$)] Iperparametro che controlla la
+        dimensione del passo di gradient descent. Il più critico nel
+        progetto.
+    \item[Loss] Funzione che misura quanto la predizione si discosta
+        dalla verità. La backpropagation cerca di minimizzarla.
+    \item[Mutazione] Operatore genetico che introduce variazioni casuali
+        in un cromosoma per mantenere diversità.
+    \item[NAS (Neural Architecture Search)] Sottocampo dell'AutoML che
+        automatizza la progettazione di architetture neurali.
+    \item[One-hot encoding] Rappresentazione delle etichette di classe
+        come vettori binari con un solo $1$ nella posizione della classe.
+    \item[Overfitting] Fenomeno per cui un modello memorizza il training
+        invece di generalizzare. Si manifesta con accuracy alta sul
+        training ma bassa sul validation/test.
+    \item[Parametri (di un modello)] Valori che il modello impara dai
+        dati: nel caso di una rete neurale, pesi e bias.
+    \item[Penalità di complessità] Termine sottratto alla fitness per
+        scoraggiare reti grandi. Nel progetto: $\lambda \cdot
+        \log_{10}(N_{\text{params}})$.
+    \item[Popolazione] Insieme di tutti gli individui in una generazione.
+    \item[ReLU] $f(x) = \max(0, x)$. La funzione di attivazione più
+        usata nei layer nascosti.
+    \item[Selezione a torneo] Procedura di selezione: si estraggono $k$
+        individui casuali e si sceglie il migliore tra loro.
+    \item[Softmax] Funzione di output per classificazione multiclasse:
+        trasforma un vettore in una distribuzione di probabilità.
+    \item[Sfruttamento] Capacità del GA di concentrarsi sulle zone già
+        promettenti. Promosso da elitismo, tournament size grande, basso
+        mutation rate.
+    \item[StandardScaler] Trasformazione che porta ogni feature a media
+        $0$ e deviazione standard $1$. Da fittare \emph{solo} sul
+        training.
+    \item[Stratificazione] Tecnica di split che preserva le proporzioni
+        delle classi in ciascun sottoinsieme.
+    \item[Test set] Sottoinsieme dei dati toccato \emph{una sola volta}
+        alla fine, per stimare onestamente la performance del modello.
+    \item[Training set] Sottoinsieme dei dati usato per aggiornare i
+        pesi via backpropagation.
+    \item[Validation set] Sottoinsieme usato per scegliere fra
+        configurazioni alternative (qui: per misurare la fitness del GA).
 \end{description}
 
-% ════════════════════════════════════════════════════════════
 \end{document}
-% ════════════════════════════════════════════════════════════
