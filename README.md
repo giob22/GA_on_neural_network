@@ -36,32 +36,33 @@ L'obiettivo è mostrare come funziona il processo di apprendimento "sotto il cof
 
 ```text
 GA_on_neural_network/
-├── neural_network/                  # Modulo principale
-│   ├── __init__.py
-│   ├── nn_engine.py                 # Classe neural_network (feedforward + backprop)
-│   ├── nn_layer.py                  # Classe layer e funzioni di attivazione
-│   └── genetic_algorithm.py        # Algoritmo genetico per architecture search
-├── tests_script/                    # Script di test per ogni iperparametro
-│   ├── test_1_learning_rate.py
-│   ├── test_2_epochs.py
-│   ├── test_3_lambda.py
-│   ├── test_4_k.py
-│   ├── test_5_population.py
-│   ├── test_6_generations.py
-│   ├── test_7_mutation_rate.py
-│   ├── test_8_dataset.py
-│   ├── test_9A_leakage.py
-│   └── test_9B_leakage.py
-├── tests_img/                       # Output dei test (CSV + PNG)
-│   └── summary.csv                  # CSV consolidato con tutti i valori ottimali
+├── src/
+│   ├── neural_network/              # Modulo principale
+│   │   ├── __init__.py
+│   │   ├── nn_engine.py             # Classe neural_network (feedforward + backprop)
+│   │   ├── nn_layer.py              # Classe layer e funzioni di attivazione
+│   │   └── genetic_algorithm.py    # Algoritmo genetico per architecture search
+│   ├── tests_script/               # Script di test per ogni iperparametro
+│   │   ├── test_1_learning_rate.py
+│   │   ├── test_2_epochs.py
+│   │   ├── test_3_lambda.py
+│   │   ├── test_4_k.py
+│   │   ├── test_5_population.py
+│   │   ├── test_6_generations.py
+│   │   ├── test_7_mutation_rate.py
+│   │   ├── test_8_dataset.py
+│   │   ├── test_9A_leakage.py
+│   │   └── test_9B_leakage.py
+│   ├── tests_img/                  # Output dei test (CSV + PNG)
+│   │   └── summary.csv             # CSV consolidato con tutti i valori ottimali
+│   ├── img/                        # Grafici generati da main.py
+│   └── main.py                     # Entry point e interfaccia run()
 ├── docs/
-│   ├── SRS.md                       # Specifiche dei requisiti software
-│   ├── appunti.md                   # Note tecniche
-│   └── analisi_test.md              # Analisi dettagliata dei risultati
-├── img/                             # Grafici generati da main.py
-├── main.py                          # Entry point e interfaccia run()
-├── guida_test.md                    # Guida all'esecuzione dei test nell'ordine corretto
-├── considerazioni.md                # Motivazioni delle scelte per ogni iperparametro
+│   ├── SRS.md                      # Specifiche dei requisiti software
+│   ├── appunti.md                  # Note tecniche
+│   └── analisi_test.md             # Analisi dettagliata dei risultati
+├── guida_test.md                   # Guida all'esecuzione dei test nell'ordine corretto
+├── considerazioni.md               # Motivazioni delle scelte per ogni iperparametro
 └── requirements.txt
 ```
 
@@ -69,7 +70,7 @@ GA_on_neural_network/
 
 ## Architettura del sistema
 
-### `neural_network/nn_engine.py` — Il motore della rete
+### `src/neural_network/nn_engine.py` — Il motore della rete
 
 Contiene la classe `neural_network`.
 
@@ -91,7 +92,7 @@ Contiene la classe `neural_network`.
 - `cross_entropy(target, guess)` — Cross-entropy loss
 - `dCE_softmax(target, guess)` — Gradiente combinato CE + softmax (`guess - target`)
 
-### `neural_network/nn_layer.py` — Layer e funzioni di attivazione
+### `src/neural_network/nn_layer.py` — Layer e funzioni di attivazione
 
 | Funzione | Formula | Inizializzazione pesi consigliata |
 |---|---|---|
@@ -103,7 +104,7 @@ Contiene la classe `neural_network`.
 
 I pesi vengono inizializzati automaticamente con He o Xavier a seconda della funzione di attivazione del layer.
 
-### `neural_network/genetic_algorithm.py` — Algoritmo genetico
+### `src/neural_network/genetic_algorithm.py` — Algoritmo genetico
 
 Vedi la sezione dedicata qui sotto.
 
@@ -195,16 +196,17 @@ pip install -r requirements.txt
 ### Entry point principale
 
 ```bash
-python main.py
+python src/main.py
 ```
 
-Esegue il GA su `load_digits` con i parametri default e salva i grafici in `img/`.
+Esegue il GA su `load_digits` con i parametri default e salva i grafici in `src/img/`.
 
 ### Interfaccia `run()`
 
 La funzione `run()` in `main.py` è l'interfaccia principale per eseguire esperimenti:
 
 ```python
+import sys; sys.path.insert(0, 'src')
 from main import run
 from sklearn.datasets import load_digits
 
@@ -242,6 +244,7 @@ result['storia_mean_accuracy'] # lista float, una per generazione
 ### Uso diretto della rete neurale
 
 ```python
+import sys; sys.path.insert(0, 'src')
 from neural_network import neural_network
 from neural_network.nn_layer import relu, softmax
 import numpy as np
@@ -266,7 +269,7 @@ classe_predetta = np.argmax(risultato['guess'])
 
 ## Test di sensibilità ai parametri
 
-Tutti gli script di test si trovano in `tests_script/`. Ogni script varia un solo parametro tenendo fissi gli altri, e salva i risultati in `tests_img/` come CSV + grafici PNG.
+Tutti gli script di test si trovano in `src/tests_script/`. Ogni script varia un solo parametro tenendo fissi gli altri, e salva i risultati in `src/tests_img/` come CSV + grafici PNG.
 
 Per l'ordine corretto di esecuzione e i criteri di scelta dei valori ottimali, vedere [`guida_test.md`](guida_test.md).
 
