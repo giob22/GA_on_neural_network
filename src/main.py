@@ -15,8 +15,13 @@ import os
 import time
 import logging
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO, 
+                    format="[%(levelname)s] %(message)s",
+                    filename='app.log',         # Nome del file di output
+                    filemode='w'
+                    )
 logger = logging.getLogger(__name__)
+
 
 
 def one_hot(y, n_classes=3):
@@ -94,15 +99,15 @@ def mean_accuracy_on_K_runs(individuo, n_feature, n_output, learning_rate, epoch
 
 SEED = 0
 
-K = 20 # numero di addestramenti per individuo
+K = 3 # numero di addestramenti per individuo
 
-POPULATION_SIZE = 30
-GENERATIONS = 20
+POPULATION_SIZE = 20
+GENERATIONS = 50
 MUTATION_RATE = 0.2
 TOURNAMENT_SIZE = 10
 EPOCHS = 500
-LEARNING_RATE = 0.01
-LAMBDA_ = 0.01
+LEARNING_RATE = 0.05
+LAMBDA_ = 0.05
 
 
 def run(
@@ -182,9 +187,9 @@ def run(
     # della rete migliore trovata
 
     # primo split: separa il test set (20% del totale) → non sarà mai usato nel GA
-    x_trainval, x_test, y_trainval, y_test = train_test_split(x, y, test_size=0.2, random_state=seed)
+    x_trainval, x_test, y_trainval, y_test = train_test_split(x, y, test_size=0.2, random_state=seed, stratify=y)
     # secondo split: separa val dal rimanente 80% → usato dal GA per valutare la fitness
-    x_train, x_val, y_train, y_val = train_test_split(x_trainval, y_trainval, test_size=0.25, random_state=seed)
+    x_train, x_val, y_train, y_val = train_test_split(x_trainval, y_trainval, test_size=0.25, random_state=seed, stratify=y_trainval)
     # 0.25 x 0.80 = 0.2 del totale → split finale 60/20/20
 
     # Normalizzazione: X ← (X - media(X)) / std(X)
@@ -206,7 +211,7 @@ def run(
         y_train, x_train, y_test, x_test,
         K, seed=seed
     )
-    logger.info(f"accuracy della rete baseline: {round(accuracy_baseline * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
+    logger.debug(f"accuracy della rete baseline: {round(accuracy_baseline * 100, 2)}%\n#params: {number_params(input_size, cromosoma_baseline, n_classi)}")
 
     # ESECUZIONE DEL Genetic Algorithm
     ga = genetic_algorithm.GeneticAlgorithm(
@@ -230,7 +235,7 @@ def run(
     (best_individuo, best_fitness, best_accuracy,
      storia_best_fitness, storia_best_accuracy, storia_mean_accuracy) = ga.run()
     stop_time = time.perf_counter()
-    logger.info(f"tempo di esecuzione: {stop_time - start_time:.2f}s")
+    logger.debug(f"tempo di esecuzione: {stop_time - start_time:.2f}s")
 
     storia_best_fitness  = [round(v * 100, 2) for v in storia_best_fitness]
     storia_best_accuracy = [round(v * 100, 2) for v in storia_best_accuracy]
@@ -244,7 +249,7 @@ def run(
         K=K, seed=seed
     )
 
-    logger.info(f"Accuracy sul validation set (ottimizzazione GA): {round(best_accuracy * 100, 2)}%")
+    logger.debug(f"Accuracy sul validation set (ottimizzazione GA): {round(best_accuracy * 100, 2)}%")
     logger.info(f"Accuracy sul test set (stima reale): {round(test_accuracy * 100, 2)}%")
 
     # formatting per grafica e output
@@ -254,10 +259,10 @@ def run(
     test_accuracy_pct  = round(test_accuracy * 100, 2)
 
     logger.info(f"Miglior architettura trovata:\n{best_individuo_str}")
-    logger.info(f"Fitness: {best_fitness_pct}")
-    logger.info(f"Accuracy val: {best_accuracy_pct}%")
-    logger.info(f"Numero di layer={len(best_individuo_str)}")
-    logger.info(f"#parametri={number_params(input_size, best_individuo_str, n_classi)}")
+    logger.debug(f"Fitness: {best_fitness_pct}")
+    logger.debug(f"Accuracy val: {best_accuracy_pct}%")
+    logger.debug(f"Numero di layer={len(best_individuo_str)}")
+    logger.debug(f"#parametri={number_params(input_size, best_individuo_str, n_classi)}")
 
     ########################################GRAFICA########################################
 
@@ -433,4 +438,4 @@ def run(
 
 if __name__ == "__main__":
     dataset = load_digits()
-    run(dataset=dataset, plot=False)
+    run(dataset=dataset, plot=True)

@@ -339,7 +339,7 @@ class GeneticAlgorithm:
             storia_mean_accuracy.append(np.nanmean(accuracy_scores))
 
             # stampa dell'avanzamento
-            logger.info(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5} | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}%")
+            logger.debug(f"[gen: {i:>3}] best fitness: {round(storia_best_fitness[-1]*100, 2):>5} | best accuracy: {round(storia_best_accuracy[-1] * 100, 2):>5}% | mean accuracy: {round(storia_mean_accuracy[-1] * 100, 2):>5}%")
 
 
 
