@@ -1239,6 +1239,31 @@ Per equità, la baseline è addestrata per lo stesso numero di epoche
 totali usato per valutare un singolo individuo del GA: $K \cdot E$ epoche
 (es. $3 \cdot 500 = 1500$).
 
+Il numero di parametri della baseline varia a seconda del dataset (per via
+del diverso numero di feature in input e di classi in output):
+
+\begin{center}
+\begin{tabular}{lccr}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{dataset}} &
+    \textcolor{white}{\textbf{feat.~in}} &
+    \textcolor{white}{\textbf{classi out}} &
+    \textcolor{white}{\textbf{parametri baseline}} \\
+    \midrule
+    iris           &  4 &  3 & 139 \\
+    \rowcolor{rowgray}
+    wine           & 13 &  3 & 211 \\
+    breast\_cancer & 30 &  2 & 338 \\
+    \rowcolor{rowgray}
+    digits         & 64 & 10 & 682 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+Nei test di sensibilità (Test 1--7) il dataset è sempre \texttt{digits},
+quindi il confronto è sempre rispetto a \textbf{682 parametri}.
+
 \begin{riassunto}
 \begin{itemize}
     \item Il sistema è composto dal modulo \texttt{neural\_network} (motore) e \texttt{genetic\_algorithm} (orchestratore).
@@ -1264,11 +1289,35 @@ all'una o all'altra delle scelte progettuali.
 \subsection{Overfitting nel contesto del progetto}
 % ─────────────────────────────────────────────────────────────
 
+\label{ssec:overfitting}
+
 Il GA, lasciato senza vincoli, ha una naturale tendenza a far crescere
 le architetture. Più una rete è grande, più parametri liberi ha, e più
 è capace di adattarsi (anche \emph{troppo}) ai dati. Sul training set
 questo si traduce in accuracy più alta; sul validation set anche, ma in
 misura minore; sul test set spesso \emph{peggio}.
+
+\begin{attenzione}
+\textbf{Troppi parametri $\Rightarrow$ maggiore rischio di overfitting.}\\
+Utilizzare una rete con molti più parametri di quanti ne servano
+realmente \emph{aumenta} la probabilità di overfitting. Ecco perché:
+\begin{itemize}
+    \item Ogni parametro è un grado di libertà in più che il modello può
+          usare per adattarsi ai dati.
+    \item Se i parametri sono più del necessario, quelli ``in eccesso''
+          non hanno pattern reali da imparare: finiscono per memorizzare
+          il rumore specifico del training set.
+    \item Questo si traduce in alta accuracy sul training ma
+          generalizzazione peggiore sul test --- la definizione classica
+          di overfitting.
+\end{itemize}
+\textbf{Esempio concreto (Test 8 --- Wine):} la baseline usa $211$
+parametri, il GA solo $122$, entrambi raggiungono $100\%$. I $89$
+parametri in eccesso della baseline non portano nessun beneficio di
+accuracy, ma su un dataset più rumoroso o con meno campioni sarebbero
+liberi di memorizzare pattern spurii. La rete GA, più compatta, avrebbe
+un rischio di overfitting strutturalmente inferiore.
+\end{attenzione}
 
 \begin{concetto}[overfitting sul validation set]
 È una forma sottile di overfitting: il GA non sta facendo overfitting
@@ -1490,22 +1539,25 @@ $\Rightarrow$ fitness rumorosa $\Rightarrow$ il GA seleziona architetture
 ``per caso''. Molte epoche $\Rightarrow$ stima accurata ma costosa.
 
 \begin{center}
-\begin{tabular}{lcc}
+\begin{tabular}{lccr}
     \toprule
     \rowcolor{headerblue}
     \textcolor{white}{\textbf{epochs}} &
     \textcolor{white}{\textbf{test\_accuracy}} &
-    \textcolor{white}{\textbf{tempo (s)}} \\
+    \textcolor{white}{\textbf{tempo (s)}} &
+    \textcolor{white}{\textbf{n\_params GA}} \\
     \midrule
-    100   & 53.72\%  & 96.6 \\
+    100   & 53.72\%  & 96.6   & 4\,735 \\
     \rowcolor{rowgray}
-    250   & 78.33\%  & 96.8 \\
-    500   & 88.06\%  & 100.3 \\
+    250   & 78.33\%  & 96.8   & 4\,435 \\
+    500   & 88.06\%  & 100.3  & 3\,910 \\
     \rowcolor{rowgray}
-    1000  & 91.44\%  & 129.3 \\
+    1000  & 91.44\%  & 129.3  & 4\,360 \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 Con 100 epoche la \texttt{test\_accuracy} è $53.72\%$ — appena meglio di
@@ -1515,6 +1567,13 @@ A 500 epoche si ottiene $88.06\%$ con un overhead di soli $4$ secondi
 rispetto a 250: il salto è enorme. Da 500 a 1000 epoche il guadagno è di
 $+3.4$ punti percentuali ma il tempo cresce del $29\%$ (rendimenti
 decrescenti).
+
+Con poche epoche il GA seleziona architetture con $4\,000$+ parametri,
+molto più grandi della baseline ($682$): il segnale di fitness è rumoroso
+e il GA non riesce a discriminare architetture compatte da quelle grandi,
+quindi le architetture crescono liberamente. Solo con epoche sufficienti
+la fitness diventa affidabile e la penalità $\lambda$ può fare effetto,
+portando a reti più snelle.
 
 \textbf{Scelta finale: \fnt{epochs = 500}.} Punto di massimo rendimento
 marginale.
@@ -1528,23 +1587,26 @@ diversi. $K$ basso $\Rightarrow$ stima rumorosa. $K$ alto $\Rightarrow$
 stima stabile ma ogni generazione costa $K$ volte di più.
 
 \begin{center}
-\begin{tabular}{lcc}
+\begin{tabular}{lccr}
     \toprule
     \rowcolor{headerblue}
     \textcolor{white}{\textbf{K}} &
     \textcolor{white}{\textbf{mean\_test}} &
-    \textcolor{white}{\textbf{std\_test}} \\
+    \textcolor{white}{\textbf{std\_test}} &
+    \textcolor{white}{\textbf{n\_params GA}} \\
     \midrule
-    1   & 85.61\%   & 1.78\%   \\
+    1   & 85.61\%   & 1.78\%  & 4\,135 \\
     \rowcolor{rowgray}
-    3   & 85.70\%   & 0.93\%   \\
-    5   & 86.45\%   & 1.64\%   \\
+    3   & 85.70\%   & 0.93\%  & 3\,760 \\
+    5   & 86.45\%   & 1.64\%  & 3\,910 \\
     \rowcolor{rowgray}
-    10  & 86.86\%   & 0.79\%   \\
-    20  & 86.78\%   & 0.93\%   \\
+    10  & 86.86\%   & 0.79\%  & 3\,910 \\
+    20  & 86.78\%   & 0.93\%  & 4\,735 \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 Con $K=1$ la deviazione standard sulla \texttt{test\_accuracy} (calcolata
@@ -1553,6 +1615,11 @@ falsamente alta o bassa per pura casualità del seed. Con $K=3$ la
 deviazione si dimezza a $0.93\%$ a costo solo triplicato. Da $K=3$ a
 $K=10$ la \texttt{std} scende a $0.79\%$, miglioramento marginale di
 $0.14$ punti che non giustifica il triplicarsi del costo.
+
+In questo test il GA trova architetture con $3\,700$--$4\,700$ parametri,
+molto più grandi della baseline ($682$): il learning rate è ancora a
+$0.01$ (subottimale) e la fitness rumorosa impedisce alla penalità
+$\lambda$ di operare efficacemente, lasciando crescere le architetture.
 
 \textbf{Scelta finale: $\bm{K=3}$.} Dimezza il rumore di valutazione a
 costo computazionale ragionevole.
@@ -1566,23 +1633,26 @@ costo computazionale ragionevole.
 numerica.
 
 \begin{center}
-\begin{tabular}{lll}
+\begin{tabular}{llcr}
     \toprule
     \rowcolor{headerblue}
     \textcolor{white}{\textbf{learning\_rate}} &
     \textcolor{white}{\textbf{test\_accuracy}} &
-    \textcolor{white}{\textbf{architettura trovata}} \\
+    \textcolor{white}{\textbf{architettura trovata}} &
+    \textcolor{white}{\textbf{n\_params GA}} \\
     \midrule
-    0.001  & 38.15\%  & [(63, relu)]                \\
+    0.001  & 38.15\%  & [(63, relu)]        & 4\,735 \\
     \rowcolor{rowgray}
-    0.005  & 81.48\%  & [(64, relu)]                \\
-    0.01   & 87.31\%  & [(50, leaky\_relu)]         \\
+    0.005  & 81.48\%  & [(64, relu)]        & 4\,810 \\
+    0.01   & 87.31\%  & [(50, leaky\_relu)] & 3\,760 \\
     \rowcolor{rowgray}
-    0.05   & 90.65\%  & [(24, relu)]                \\
-    0.1    & 90.74\%  & [(24, sigmoid)]             \\
+    0.05   & 90.65\%  & [(24, relu)]        & 1\,810 \\
+    0.1    & 90.74\%  & [(24, sigmoid)]     & 1\,810 \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 \begin{itemize}
@@ -1595,6 +1665,13 @@ numerica.
           alta, introducendo instabilità nei test successivi.
     \item Con $\eta = 0.05$ il GA trova \fnt{[(24, relu)]} in modo stabile
           e riproducibile.
+    \item \textbf{Il learning rate influenza i parametri trovati:} con LR
+          basso ($\le 0.01$) il GA seleziona architetture con $3\,700$--
+          $4\,800$ parametri (fino a $7\times$ la baseline). Con LR
+          ottimale ($0.05$) converge a $1\,810$ parametri. La ragione è
+          che con LR basso il segnale di fitness è rumoroso e il GA non
+          riesce a discriminare reti compatte da quelle grandi --- le
+          architetture crescono senza controllo.
 \end{itemize}
 
 \begin{concetto}[il learning rate è il parametro più critico]
@@ -1624,26 +1701,34 @@ $\Rightarrow$ reti minuscole con accuracy insufficiente.
     \textcolor{white}{\textbf{n\_params}} &
     \textcolor{white}{\textbf{architettura}} \\
     \midrule
-    0.0  & 90.65\%  & 1810   & [(24, relu)]            \\
+    0.0  & 90.65\%  & 1\,810   & [(24, relu)]            \\
     \rowcolor{rowgray}
-    0.01 & 90.65\%  & 1810   & [(24, relu)]            \\
-    0.05 & 90.65\%  & 1810   & [(24, relu)]            \\
+    0.01 & 90.65\%  & 1\,810   & [(24, relu)]            \\
+    0.05 & 90.65\%  & 1\,810   & [(24, relu)]            \\
     \rowcolor{rowgray}
-    0.1  & 88.80\%  & 1135   & [(15, leaky\_relu)]     \\
-    0.2  & 86.20\%  &  760   & [(10, relu)]            \\
+    0.1  & 88.80\%  & 1\,135   & [(15, leaky\_relu)]     \\
+    0.2  & 86.20\%  &   760    & [(10, relu)]            \\
     \bottomrule
 \end{tabular}
 \end{center}
 
+\textit{Baseline Digits: \textbf{682 parametri}.}
+
 \textbf{Osservazioni.}
 \begin{itemize}
     \item Da $\lambda = 0$ a $\lambda = 0.05$ la \texttt{test\_accuracy}
-          è identica e la stessa architettura viene selezionata. La
-          penalità c'è ma non è abbastanza forte da distorcere la
-          scelta.
+          è identica e la stessa architettura viene selezionata ($1\,810$
+          parametri). La penalità c'è ma non è abbastanza forte da
+          distorcere la scelta: $1\,810$ parametri sono più che necessari
+          per Digits, ma la penalità logaritmica non li penalizza
+          abbastanza da spingersi verso reti più piccole.
     \item Da $\lambda = 0.1$ in poi la \texttt{test\_accuracy} cala
           ($-1.85\%$, poi $-4.45\%$) perché il GA preferisce reti troppo
-          piccole.
+          piccole: $1\,135$ e $760$ parametri sono insufficienti per la
+          complessità di Digits.
+    \item La baseline con $682$ parametri ottiene solo $58.33\%$, a
+          conferma che su Digits servono più parametri di quelli che la
+          baseline fissa può offrire.
 \end{itemize}
 
 \textbf{Scelta finale: $\bm{\lambda = 0.05}$.} Mantiene tutta l'accuracy
@@ -1679,18 +1764,20 @@ a ricerca casuale.
     \textcolor{white}{\textbf{n\_params}} &
     \textcolor{white}{\textbf{architettura}} \\
     \midrule
-    0.0  & 89.07\%  & 2110  & [(28, leaky\_relu)] \\
+    0.0  & 89.07\%  & 2\,110 & [(28, leaky\_relu)] \\
     \rowcolor{rowgray}
-    0.05 & 89.07\%  & 2110  & [(28, leaky\_relu)] \\
-    0.1  & 90.19\%  & 1885  & [(25, relu)]        \\
+    0.05 & 89.07\%  & 2\,110 & [(28, leaky\_relu)] \\
+    0.1  & 90.19\%  & 1\,885 & [(25, relu)]        \\
     \rowcolor{rowgray}
-    0.2  & 90.65\%  & 1810  & [(24, relu)]        \\
-    0.4  & 90.19\%  & 1885  & [(25, relu)]        \\
+    0.2  & 90.65\%  & 1\,810 & [(24, relu)]        \\
+    0.4  & 90.19\%  & 1\,885 & [(25, relu)]        \\
     \rowcolor{rowgray}
-    0.8  & 91.11\%  & 1735  & [(23, relu)]        \\
+    0.8  & 91.11\%  & 1\,735 & [(23, relu)]        \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 \begin{itemize}
@@ -1725,19 +1812,21 @@ ampia ma con generazioni fissate ogni individuo viene raffinato meno.
     \textcolor{white}{\textbf{gap val$-$test}} &
     \textcolor{white}{\textbf{n\_params}} \\
     \midrule
-    5    & 87.69\%  & 3.33\%  & 1585 \\
+    5    & 87.69\%  & 3.33\%  & 1\,585 \\
     \rowcolor{rowgray}
-    10   & 88.98\%  & 1.85\%  & 1510 \\
-    20   & 90.65\%  & 0.83\%  & 1810 \\
+    10   & 88.98\%  & 1.85\%  & 1\,510 \\
+    20   & 90.65\%  & 0.83\%  & 1\,810 \\
     \rowcolor{rowgray}
-    30   & 89.07\%  & 2.41\%  & 2110 \\
-    50   & 89.63\%  & 1.30\%  & 1360 \\
+    30   & 89.07\%  & 2.41\%  & 2\,110 \\
+    50   & 89.63\%  & 1.30\%  & 1\,360 \\
     \rowcolor{rowgray}
-    70   & 90.00\%  & 1.67\%  & 1960 \\
-    100  & 88.80\%  & 0.94\%  & 1135 \\
+    70   & 90.00\%  & 1.67\%  & 1\,960 \\
+    100  & 88.80\%  & 0.94\%  & 1\,135 \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 La relazione \emph{non} è monotona: c'è un picco netto a popolazione
@@ -1761,32 +1850,36 @@ tempo di convergere. Troppe $\Rightarrow$ costo computazionale inutile
 perché la fitness è già stabile.
 
 \begin{center}
-\begin{tabular}{lcl}
+\begin{tabular}{lclr}
     \toprule
     \rowcolor{headerblue}
     \textcolor{white}{\textbf{generations}} &
     \textcolor{white}{\textbf{test\_accuracy}} &
-    \textcolor{white}{\textbf{architettura}} \\
+    \textcolor{white}{\textbf{architettura}} &
+    \textcolor{white}{\textbf{n\_params GA}} \\
     \midrule
-    5    & 88.61\%  & [(52, relu)] \\
+    5    & 88.61\%  & [(52, relu)] & 3\,910 \\
     \rowcolor{rowgray}
-    10   & 90.65\%  & [(24, relu)] \\
-    20   & 90.65\%  & [(24, relu)] \\
+    10   & 90.65\%  & [(24, relu)] & 1\,810 \\
+    20   & 90.65\%  & [(24, relu)] & 1\,810 \\
     \rowcolor{rowgray}
-    30   & 90.65\%  & [(24, relu)] \\
-    50   & 90.65\%  & [(24, relu)] \\
+    30   & 90.65\%  & [(24, relu)] & 1\,810 \\
+    50   & 90.65\%  & [(24, relu)] & 1\,810 \\
     \rowcolor{rowgray}
-    70   & 90.65\%  & [(24, relu)] \\
-    100  & 90.65\%  & [(24, relu)] \\
+    70   & 90.65\%  & [(24, relu)] & 1\,810 \\
+    100  & 90.65\%  & [(24, relu)] & 1\,810 \\
     \bottomrule
 \end{tabular}
 \end{center}
+
+\textit{Baseline Digits: \textbf{682 parametri}.}
 
 \textbf{Osservazioni.}
 La convergenza è sorprendentemente rapida: già a $\text{gen} = 10$ il GA
 trova la stessa architettura ottimale che trova anche a $\text{gen} = 100$.
 Il salto da $5$ a $10$ è l'unico significativo ($+2.04\%$); da $10$ in poi
-il risultato è identico.
+il risultato è identico. Da $\text{gen}=10$ in poi anche il numero di
+parametri si stabilizza a $1\,810$: l'architettura è convergita.
 
 \textbf{Scelta finale: \fnt{generations = 50}.} Ampio margine di sicurezza
 sul punto di convergenza reale ($\text{gen}=10$), senza sprecare tempo
@@ -1809,14 +1902,40 @@ su altri.
     \textcolor{white}{\textbf{cl.}} &
     \textcolor{white}{\textbf{GA test\%}} &
     \textcolor{white}{\textbf{Baseline\%}} &
-    \textcolor{white}{\textbf{vince?}} \\
+    \textcolor{white}{\textbf{vince (acc.)?}} \\
     \midrule
-    iris           &  4 &  3 & 92.22\%   & 94.44\%   & no    \\
+    iris           &  4 &  3 & 92.22\%   & 94.44\%   & no         \\
     \rowcolor{rowgray}
-    wine           & 13 &  3 & 100.00\%  & 100.00\%  & pari  \\
-    breast\_cancer & 30 &  2 & 95.61\%   & 96.20\%   & no    \\
+    wine           & 13 &  3 & 100.00\%  & 100.00\%  & pari$^*$   \\
+    breast\_cancer & 30 &  2 & 95.61\%   & 96.20\%   & no         \\
     \rowcolor{rowgray}
     digits         & 64 & 10 & 90.65\%   & 58.33\%   & sì (+32\%) \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+$^*$\textit{Accuracy identica ma architetture molto diverse per numero di parametri: vedere tabella sotto.}
+
+\medskip
+\textbf{Confronto parametri: GA vs baseline.}
+
+\begin{center}
+\begin{tabular}{lrrlrr}
+    \toprule
+    \rowcolor{headerblue}
+    \textcolor{white}{\textbf{dataset}} &
+    \textcolor{white}{\textbf{params GA}} &
+    \textcolor{white}{\textbf{architettura GA}} &
+    \textcolor{white}{\textbf{}} &
+    \textcolor{white}{\textbf{params BL}} &
+    \textcolor{white}{\textbf{rapporto}} \\
+    \midrule
+    iris           &  43  & [(5, leaky\_relu)]  & & 139  & GA usa $31\%$  \\
+    \rowcolor{rowgray}
+    wine           & 122  & [(7, relu)]         & & 211  & GA usa $58\%$  \\
+    breast\_cancer & 167  & [(5, relu)]         & & 338  & GA usa $49\%$  \\
+    \rowcolor{rowgray}
+    digits         & 1\,810 & [(24, relu)]      & & 682  & GA usa $266\%$ \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -1824,26 +1943,36 @@ su altri.
 \textbf{Osservazioni.}
 \begin{itemize}
     \item Su \emph{Iris} e \emph{Breast Cancer} la baseline batte il GA
-          di pochi decimi di punto. Sono problemi semplici, e la baseline
-          (con architettura fissa $[(8,\text{leaky\_relu}), (8,\text{leaky\_relu})]$,
-          139 parametri) è già abbastanza espressiva. Il GA trova
-          architetture leggermente diverse ma non significativamente
-          migliori.
-    \item Su \emph{Wine} entrambi raggiungono il $100\%$: dataset
-          ampiamente risolto.
+          di pochi decimi di punto in accuracy, ma usa $3$--$4.5\times$
+          più parametri. Il GA trova soluzioni più parsimonious (43 vs 139
+          e 167 vs 338): a parità quasi completa di performance, la rete
+          più piccola è da preferire perché generalizza meglio su dati
+          rumorosi.
+    \item Su \emph{Wine} entrambi raggiungono il $100\%$, ma il GA ottiene
+          lo stesso risultato con soli $122$ parametri contro i $211$ della
+          baseline ($-42\%$). La parità di accuracy \emph{non significa}
+          parità di soluzioni: la baseline ha $89$ parametri in eccesso
+          rispetto a quanti ne servono realmente. Questi parametri ``in
+          più'' non portano benefici, e su dati più rumorosi o con meno
+          campioni aumenterebbero il rischio di overfitting (vedi
+          \S\,\ref{ssec:overfitting}).
     \item Su \emph{Digits} il GA batte la baseline di $32$ punti
-          percentuali. Su problemi complessi (molte feature, molte classi,
-          molti dati) la ricerca automatica dell'architettura porta valore
-          enorme.
+          percentuali e giustamente usa $1\,810$ parametri ($2.7\times$
+          la baseline). La baseline con $682$ parametri è
+          \emph{sottodimensionata} per la complessità del problema
+          ($64$ feature, $10$ classi): non ha abbastanza capacità e
+          rimane a $58.33\%$. Il GA esplora lo spazio e trova la
+          dimensione giusta.
 \end{itemize}
 
 \begin{concetto}[la NAS aggiunge valore quando il problema è non triviale]
 Su dataset semplici, una rete fissa ragionevole è già adeguata: la NAS
-non guadagna molto. Su dataset complessi, dove lo spazio delle
-architetture utili è grande e non ovvio, la ricerca automatica può fare
-una differenza enorme. Questo è anche il motivo per cui la NAS è
-particolarmente utile in applicazioni industriali (visione artificiale,
-NLP) dove i problemi sono complessi.
+non guadagna molto in accuracy, ma trova comunque reti \emph{più
+compatte}. Su dataset complessi, la ricerca automatica può fare una
+differenza enorme sia in accuracy che nel trovare la capacità giusta.
+Questo è anche il motivo per cui la NAS è particolarmente utile in
+applicazioni industriali (visione artificiale, NLP) dove i problemi sono
+complessi e la dimensione ottimale della rete non è ovvia.
 \end{concetto}
 
 \textbf{Osservazione di rilievo.} Su \emph{tutti} i dataset il GA trova
